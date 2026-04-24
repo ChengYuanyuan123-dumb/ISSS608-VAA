@@ -439,3 +439,5 @@ The left chart is quiet and practical. The right chart has more personality: war
 This exercise goes beyond basic ggplot2 by focusing on how charts are refined, labelled, themed, and arranged. The same dataset can look very different depending on the design choices: colour, typography, spacing, labels, and layout all affect how quickly the reader understands the story.
 
 The strongest upgrade is not any single chart. It is the full visual system: Mario-inspired colours, cleaner themes, smarter labels with `ggrepel`, and multi-panel layouts with `patchwork`. The result feels less like isolated classroom charts and more like a small visual report.
+
+![](mario.png)
