@@ -1,17 +1,34 @@
 ---
-title: "Hands-on Exercise 1: A Layered Grammar of Graphics - ggplot2 methods"
+title: "Hands-on Exercise 1: A Layered Grammar of Graphics and Beyond ggplot2 Fundamentals"
 author: "Cheng Yuanyuan"
+date: "2026-04-25"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    theme: cosmo
+    code-fold: true
+    code-tools: true
+execute:
+  echo: true
+  warning: false
+  message: false
 ---
 
-# 1.1 Learning Outcome
+# Learning Outcome
 
-In this chapter, you will learn the fundamental principles and key components of **ggplot2**. You will also gain practical experience using these components to create statistical graphics based on the **Layered Grammar of Graphics**. By the end of this chapter, you will be able to apply the essential graphical elements in ggplot2 to produce statistical visualisations that are both elegant and functional.
+This hands-on exercise focuses on learning how to construct statistical graphics using the Layered Grammar of Graphics in ggplot2. The exercise uses the Exam_data dataset to demonstrate how different graphical layers, aesthetic mappings, geometric objects, statistical transformations, faceting, coordinates, and themes can be combined to produce clear and meaningful visualisations.
 
-# 1.2 Getting started
+The main objective is not only to reproduce the charts from the tutorial, but also to understand how each ggplot2 component contributes to the final visual output.
 
-## Install and launching R packages
+# Getting started
 
-The code chunk below uses p_load() of pacman package to check if tidyverse packages are installed in the computer. If the are, then they will be launched into R.
+### Installing and launching R packages
+
+Before creating any visualisation, the required R packages need to be loaded. In this exercise, the `pacman` package is used because it can check whether the required packages are installed and load them into the R session automatically.
+
+The main package used here is `tidyverse`, which includes `ggplot2` for data visualisation and other useful tools for data handling.
 
 ```{r}
 pacman::p_load(tidyverse)
@@ -21,14 +38,110 @@ pacman::p_load(tidyverse)
 
 ```{r}
 exam_data <- read_csv("Exam_data.csv")
-
 ```
 
-## plotting a simple bar chart
+### Previewing the data
+
+Before creating the visualisations, the dataset is briefly checked to understand its structure, variables, and data types. This helps to decide which variables are suitable for categorical plots and which variables are suitable for numerical plots.
 
 ```{r}
-#｜echo: false
+glimpse(exam_data)
+```
+
+## Introducing ggplot2: Distribution of Students by Race
+
+ggplot2 is an R package for **declaratively** creating **data-driven** graphics based on ***The Grammar of Graphics.***
+
+It is also part of the tidyverse family specially designed for visual exploration and communication.
+
+For more detail, visit [ggplot2 link](https://ggplot2.tidyverse.org/).o(\^\_-)O
+
+### Basic Bar Chart Using `geom_bar()`
+
+The first visualisation is a simple bar chart showing the distribution of students by race. Since `RACE` is a categorical variable, `geom_bar()` is suitable because it counts the number of observations in each category automatically.
+
+```{r}
 ggplot(data = exam_data,
        aes(x = RACE)) + 
   geom_bar()
 ```
+
+### Improving the Bar Chart Design
+
+The basic bar chart correctly shows the distribution of students by race, but the default ggplot2 style can be improved. The following version adds a clearer title, axis labels, a cleaner theme, and a more intentional colour design.
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = RACE, fill = RACE)) +
+  geom_bar(width = 0.65) +
+  labs(
+    title = "Distribution of Students by Race",
+    subtitle = "Based on the Exam_data dataset",
+    x = "Race",
+    y = "Number of Students"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10),
+    axis.title = element_text(face = "bold")
+  )
+```
+
+From the improved bar chart, Chinese students form the largest group in the dataset, followed by Malay students. Indian students and students classified under Others make up much smaller groups. This indicates that the dataset is not evenly distributed across race categories, which should be considered when interpreting later comparisons by race.
+
+### Aesthetic Mapping versus Fixed Aesthetic
+
+In ggplot2, aesthetics can be controlled in two different ways. If an aesthetic such as `fill` is placed inside `aes()`, it is mapped to a variable in the dataset. If it is placed outside `aes()`, it is applied as a fixed visual setting.
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = RACE)) +
+  geom_bar(fill = "steelblue", width = 0.65) +
+  labs(
+    title = "Distribution of Students by Race with Fixed Fill Colour",
+    x = "Race",
+    y = "Number of Students"
+  ) +
+  theme_minimal()
+```
+
+Unlike the previous improved bar chart, this version uses a fixed fill colour. The colour is not linked to the `RACE` variable, so all bars share the same colour. This is useful when the purpose is to compare bar heights without using colour to represent categories.
+
+### Comparing `geom_bar()` and `geom_col()`
+
+`geom_bar()` is used when the dataset contains raw observations and ggplot2 needs to count the number of rows in each category. In contrast, `geom_col()` is used when the dataset already contains summarised values.
+
+```{r}
+race_count <- exam_data %>%
+  count(RACE)
+
+race_count
+```
+
+The summarised table can now be visualised using `geom_col()`. Unlike `geom_bar()`, `geom_col()` does not count rows automatically. Instead, it uses the pre-calculated `n` column as the height of each bar.
+
+```{r}
+ggplot(data = race_count,
+       aes(x = RACE, y = n)) +
+  geom_col(fill = "#2A6F6F", color = "#1F1F1F", linewidth = 0.35, width = 0.65) +
+  labs(
+    title = "Race Distribution Using Summarised Data",
+    subtitle = "Using geom_col() with pre-counted values",
+    x = "Race",
+    y = "Number of Students"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 10),
+    axis.title = element_text(face = "bold")
+  )
+```
+
+This bar chart is created using `geom_col()`, which is suitable when the dataset has already been summarised. In this case, the table `race_count` contains the pre-calculated number of students in each race category, and the column `n` is mapped to the y-axis. Unlike `geom_bar()`, `geom_col()` does not perform automatic counting.
+
+## Visualising the Distribution of English Scores
+
+After examining the distribution of a categorical variable, the next step is to explore a numerical variable. In this section, the English scores are visualised to understand the overall score distribution, including the spread, concentration, and possible unusual values.
