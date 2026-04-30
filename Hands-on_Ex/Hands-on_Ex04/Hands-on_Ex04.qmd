@@ -40,6 +40,7 @@ pacman::p_load(
   scales
 )
 ```
+
 # Animation Concepts
 
 Animated statistical graphics are built from a sequence of frames. The chart does not literally move; instead, each frame shows the data at a different point in time, and the frames are played quickly enough to create the impression of movement.
@@ -90,6 +91,7 @@ gapminder_clean %>%
   select(country, continent, year, lifeExp, gdpPercap, population_million) %>%
   head()
 ```
+
 # gganimate Method: Transition Over Time
 
 The tutorial introduces `gganimate` as an extension of ggplot2. The key idea is simple: start with a normal ggplot chart, then add an animation layer that tells R how the chart should change across frames.
@@ -116,14 +118,14 @@ ggplot(
   transition_time(year) +
   ease_aes("linear")
 ```
+
 # Why Start with a Static Chart?
 
 Before creating an animation, it is safer to build a static version of the chart first. This is not just a technical habit; it is a design checkpoint.
 
 A static chart helps confirm whether the variables, scales, colours and labels make sense. If the static chart is already confusing, animation will usually make the confusion move around the screen instead of solving it.
 
-In this exercise, the static bubble chart uses the year 2007 as a checkpoint. Once the static version works, the same visual structure can be extended into an animated chart across all years.
-# Static Bubble Chart
+In this exercise, the static bubble chart uses the year 2007 as a checkpoint. Once the static version works, the same visual structure can be extended into an animated chart across all years. \# Static Bubble Chart
 
 Before adding animation, I first create a static bubble chart for one selected year. This acts as a visual checkpoint. If the static chart is unclear, animating it will not magically make it better.
 
@@ -162,13 +164,15 @@ ggplot(
     legend.position = "right"
   )
 ```
+
 # Plotly Animation Method
 
 Plotly supports animation through the `frame` argument. In this exercise, I use `frame = ~year`, which means each year becomes one animation step. This allows the reader to move through time using the play button and slider.
 
 The `ids = ~country` argument is also important. It helps plotly recognise that the same country appears across different years. Without this, the animation may look more jumpy because the chart may treat each year-country record as a separate object.
 
-Compared with GIF-based animation, plotly animation is more suitable for a website because it supports hover labels, zooming, play controls and direct browser interaction. This makes it a practical choice for publishing the exercise on Vercel.
+Compared with GIF-based animation, plotly animation is more suitable for a website because it supports hover labels, zooming, play controls and direct browser interaction. This makes it a practical choice for publishing the exercise on Vercel. 
+
 # Animation Design Choices
 
 The animated bubble chart uses several design choices to make the movement easier to understand.
@@ -179,8 +183,7 @@ Second, GDP per capita is shown on a log scale. This is necessary because income
 
 Third, hover tooltips are used to show country-level details. This keeps the chart readable because the main view shows the overall pattern, while the tooltip provides details only when the reader asks for them.
 
-Finally, bubble size represents population. This adds another layer of information, but it should be interpreted carefully. Bubble size is useful for rough comparison, not exact measurement.
-# Animated Bubble Chart
+Finally, bubble size represents population. This adds another layer of information, but it should be interpreted carefully. Bubble size is useful for rough comparison, not exact measurement. \# Animated Bubble Chart
 
 The static bubble chart shows one year, but it cannot show how countries move over time. To reveal the time-based pattern, I now animate the same chart across years.
 
