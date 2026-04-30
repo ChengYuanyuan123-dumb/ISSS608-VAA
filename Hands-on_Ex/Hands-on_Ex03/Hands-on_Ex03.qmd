@@ -221,8 +221,6 @@ girafe(
 )
 ```
 
-# 
-
 # Interactive Relationship between Maths and Science
 
 After looking at each subject separately, I now compare Mathematics and Science scores in the same chart. This is useful because the two subjects may move together: students who perform well in Mathematics may also perform well in Science.
@@ -270,8 +268,6 @@ girafe(
   height_svg = 5
 )
 ```
-
-# 
 
 # Plotly Interactive Chart
 
