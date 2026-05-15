@@ -1,0 +1,815 @@
+---
+title: "Hands-on_Ex06c"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Heatmap for Visualising and Analysing Multivariate Data
+
+## Overview
+
+A heatmap is used to visualise values in a table through colour. It is especially useful when a dataset contains many observations and several numerical variables. Instead of reading values one by one, a heatmap allows us to detect high-value and low-value patterns quickly.
+
+In this hands-on exercise, we use the World Happiness 2018 dataset to create static and interactive heatmaps. The main analytical goal is to compare countries across different happiness-related indicators, including happiness score, GDP per capita, social support, healthy life expectancy, freedom, generosity and perceptions of corruption.
+
+By the end of this exercise, we should be able to:
+
+- import and prepare the World Happiness 2018 dataset;
+- select suitable numerical variables for heatmap analysis;
+- transform a data frame into a matrix;
+- create static heatmaps using base R;
+- create interactive heatmaps using `heatmaply`;
+- compare scaling, normalising and percentising methods;
+- apply clustering and seriation methods;
+- improve the heatmap with a customised colour palette.
+
+## Installing and Launching R Packages
+
+The packages used in this exercise are `tidyverse`, `heatmaply`, `seriation`, `dendextend` and `knitr`.
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  heatmaply,
+  seriation,
+  dendextend,
+  knitr
+)
+```
+
+## Importing and Preparing The Data Set
+
+The dataset used in this exercise is `WHData-2018.csv`. It contains the 2018 World Happiness data by country. The variables include happiness score and several explanatory indicators.
+
+The important columns used in this exercise are:
+
+- `Country`
+- `Region`
+- `Happiness score`
+- `GDP per capita`
+- `Social support`
+- `Healthy life expectancy`
+- `Freedom to make life choices`
+- `Generosity`
+- `Perceptions of corruption`
+
+### Importing the data set
+
+The code below checks several possible file locations. This makes the file path more stable during rendering.
+
+```{r}
+wh_path <- case_when(
+  file.exists("WHData-2018.csv") ~ "WHData-2018.csv",
+  file.exists("WHData-2018(4).csv") ~ "WHData-2018(4).csv",
+  file.exists("data/WHData-2018.csv") ~ "data/WHData-2018.csv",
+  file.exists("../data/WHData-2018.csv") ~ "../data/WHData-2018.csv",
+  file.exists("../../data/WHData-2018.csv") ~ "../../data/WHData-2018.csv",
+  TRUE ~ NA_character_
+)
+
+if (is.na(wh_path)) {
+  stop("WHData-2018.csv cannot be found. Please place the file in the Hands-on_Ex06c folder.")
+}
+
+wh <- read_csv(wh_path, show_col_types = FALSE)
+```
+
+```{r}
+glimpse(wh)
+```
+
+```{r}
+knitr::kable(head(wh), format = "html", digits = 3)
+```
+
+The dataset has both categorical and numerical variables. For heatmap analysis, the country name will be used as the row label, while the selected numerical indicators will be used as the matrix values.
+
+### Preparing the heatmap variables
+
+We first select the variables required for the heatmap.
+
+```{r}
+wh_selected <- wh %>%
+  select(
+    Country,
+    Region,
+    `Happiness score`,
+    `GDP per capita`,
+    `Social support`,
+    `Healthy life expectancy`,
+    `Freedom to make life choices`,
+    Generosity,
+    `Perceptions of corruption`
+  )
+```
+
+```{r}
+glimpse(wh_selected)
+```
+
+```{r}
+knitr::kable(head(wh_selected), format = "html", digits = 3)
+```
+
+The selected dataset contains one country column, one region column and seven numerical indicators.
+
+### Transforming the data frame into a matrix
+
+Most heatmap functions require a numeric matrix. Therefore, we remove non-numeric columns and use country names as row labels.
+
+```{r}
+wh_matrix <- wh_selected %>%
+  select(
+    Country,
+    `Happiness score`,
+    `GDP per capita`,
+    `Social support`,
+    `Healthy life expectancy`,
+    `Freedom to make life choices`,
+    Generosity,
+    `Perceptions of corruption`
+  ) %>%
+  column_to_rownames("Country") %>%
+  as.matrix()
+```
+
+```{r}
+class(wh_matrix)
+```
+
+```{r}
+wh_matrix[1:6, ] %>%
+  knitr::kable(format = "html", digits = 3)
+```
+
+Now each row represents a country and each column represents a happiness-related indicator.
+
+### Creating helper transformation functions
+
+To avoid package-version issues, the following helper functions are created manually.
+
+```{r}
+normalise_matrix <- function(x) {
+  apply(x, 2, function(col) {
+    (col - min(col, na.rm = TRUE)) / 
+      (max(col, na.rm = TRUE) - min(col, na.rm = TRUE))
+  })
+}
+
+scale_matrix <- function(x) {
+  scale(x)
+}
+
+percentise_matrix <- function(x) {
+  apply(x, 2, function(col) {
+    rank(col, ties.method = "average", na.last = "keep") / 
+      sum(!is.na(col))
+  })
+}
+```
+
+These functions will be used later to compare different transformation methods.
+
+## Static Heatmap
+
+Static heatmaps are useful for a quick overview. We begin with the base R `heatmap()` function.
+
+### Basic heatmap without clustering
+
+The first heatmap keeps the original row and column order.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmap(
+  wh_matrix,
+  Rowv = NA,
+  Colv = NA,
+  scale = "none",
+  col = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmap(
+  wh_matrix,
+  Rowv = NA,
+  Colv = NA,
+  scale = "none",
+  col = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8
+)
+```
+
+:::
+
+This first version is useful as a basic check. However, the variables are measured on different scales, so direct comparison is not ideal.
+
+### Heatmap with column scaling
+
+Column scaling makes each indicator comparable by standardising values within each column.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmap(
+  wh_matrix,
+  scale = "column",
+  col = colorRampPalette(c("#D95F02", "white", "#2A6F6F"))(256),
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmap(
+  wh_matrix,
+  scale = "column",
+  col = colorRampPalette(c("#D95F02", "white", "#2A6F6F"))(256),
+  margins = c(10, 4),
+  cexRow = 0.45,
+  cexCol = 0.8
+)
+```
+
+:::
+
+This version is more meaningful because each colour shows whether a country is relatively high or low within a specific indicator.
+
+::: {.callout-note}
+For this dataset, scaling is important because happiness score, GDP per capita and corruption perception are not measured on the same numerical scale.
+:::
+
+## Creating Interactive Heatmap
+
+Interactive heatmaps allow users to hover over cells and inspect values directly.
+
+### Basic interactive heatmap
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_matrix,
+  main = "Interactive Heatmap of World Happiness Indicators, 2018",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmaply(
+  wh_matrix,
+  main = "Interactive Heatmap of World Happiness Indicators, 2018",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+This chart allows the viewer to explore country-level indicator values interactively.
+
+## Data Transformation
+
+Different transformation methods can change the interpretation of a heatmap. In this section, we compare scaling, normalising and percentising.
+
+### Scaling method
+
+Scaling converts each variable into standard deviation units.
+
+```{r}
+wh_scaled <- scale_matrix(wh_matrix)
+```
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_scaled,
+  main = "Scaled Heatmap of World Happiness Indicators",
+  colors = colorRampPalette(c("#D95F02", "white", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+wh_scaled <- scale_matrix(wh_matrix)
+
+heatmaply(
+  wh_scaled,
+  main = "Scaled Heatmap of World Happiness Indicators",
+  colors = colorRampPalette(c("#D95F02", "white", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+Scaling is useful when the objective is to compare whether a country is above or below average for each indicator.
+
+### Normalising method
+
+Normalising converts each variable into a 0 to 1 range.
+
+```{r}
+wh_normalised <- normalise_matrix(wh_matrix)
+```
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_normalised,
+  main = "Normalised Heatmap of World Happiness Indicators",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+wh_normalised <- normalise_matrix(wh_matrix)
+
+heatmaply(
+  wh_normalised,
+  main = "Normalised Heatmap of World Happiness Indicators",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+Normalising is useful when we want all indicators to be placed on the same 0 to 1 scale.
+
+### Percentising method
+
+Percentising converts values into percentile-style ranks.
+
+```{r}
+wh_percentised <- percentise_matrix(wh_matrix)
+```
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_percentised,
+  main = "Percentised Heatmap of World Happiness Indicators",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+wh_percentised <- percentise_matrix(wh_matrix)
+
+heatmaply(
+  wh_percentised,
+  main = "Percentised Heatmap of World Happiness Indicators",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+Percentising is useful when the focus is on relative ranking rather than raw numerical distance.
+
+## Clustering Algorithm
+
+Heatmaps are often combined with clustering to group similar observations together.
+
+### Distance matrix
+
+The distance matrix is calculated from the normalised data.
+
+```{r}
+wh_dist <- dist(
+  wh_normalised,
+  method = "euclidean"
+)
+```
+
+### Hierarchical clustering
+
+```{r}
+wh_hclust <- hclust(
+  wh_dist,
+  method = "average"
+)
+```
+
+```{r}
+plot(
+  wh_hclust,
+  labels = FALSE,
+  main = "Hierarchical Clustering of Countries",
+  xlab = "Countries",
+  sub = ""
+)
+```
+
+The dendrogram shows how countries are grouped based on similarity across selected happiness indicators.
+
+### Heatmap with row clusters
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_normalised,
+  dist_method = "euclidean",
+  hclust_method = "average",
+  k_row = 4,
+  main = "Normalised Heatmap with Four Country Clusters",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmaply(
+  wh_normalised,
+  dist_method = "euclidean",
+  hclust_method = "average",
+  k_row = 4,
+  main = "Normalised Heatmap with Four Country Clusters",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+This version groups countries with similar happiness indicator profiles.
+
+## Seriation
+
+Seriation improves the ordering of rows and columns in a heatmap. A better ordering can make visual patterns easier to detect.
+
+### Optimal Leaf Ordering
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_normalised,
+  seriate = "OLO",
+  main = "Heatmap with Optimal Leaf Ordering",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmaply(
+  wh_normalised,
+  seriate = "OLO",
+  main = "Heatmap with Optimal Leaf Ordering",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+Optimal Leaf Ordering helps place similar countries closer together while preserving the hierarchical clustering structure.
+
+### Mean ordering
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_normalised,
+  seriate = "mean",
+  main = "Heatmap with Mean Ordering",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmaply(
+  wh_normalised,
+  seriate = "mean",
+  main = "Heatmap with Mean Ordering",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+Mean ordering provides a simpler arrangement based on average values.
+
+### No seriation
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_normalised,
+  seriate = "none",
+  main = "Heatmap without Additional Seriation",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmaply(
+  wh_normalised,
+  seriate = "none",
+  main = "Heatmap without Additional Seriation",
+  colors = colorRampPalette(c("#F7FBFF", "#A8DADC", "#2A6F6F"))(256),
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+This version keeps the ordering simpler and avoids additional row rotation.
+
+## Working with Colour Palettes
+
+Colour design is important because heatmaps rely heavily on colour interpretation.
+
+```{r}
+my_teal_palette <- colorRampPalette(
+  c("#F7FBFF", "#A8DADC", "#2A6F6F")
+)(256)
+
+my_diverging_palette <- colorRampPalette(
+  c("#D95F02", "white", "#2A6F6F")
+)(256)
+```
+
+### Custom teal heatmap
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_normalised,
+  seriate = "none",
+  colors = my_teal_palette,
+  main = "Normalised Heatmap with Custom Teal Palette",
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmaply(
+  wh_normalised,
+  seriate = "none",
+  colors = my_teal_palette,
+  main = "Normalised Heatmap with Custom Teal Palette",
+  fontsize_row = 5,
+  fontsize_col = 9
+)
+```
+
+:::
+
+The custom teal palette keeps low values light and high values dark.
+
+## The Finishing Touch
+
+The final version combines normalised values, custom colour design, row clustering and readable labels.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+heatmaply(
+  wh_normalised,
+  Colv = NA,
+  seriate = "none",
+  colors = my_teal_palette,
+  k_row = 5,
+  margins = c(NA, 200, 60, NA),
+  fontsize_row = 4,
+  fontsize_col = 9,
+  main = "World Happiness Score and Indicators by Country, 2018",
+  xlab = "World Happiness Indicators",
+  ylab = "Countries"
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+heatmaply(
+  wh_normalised,
+  Colv = NA,
+  seriate = "none",
+  colors = my_teal_palette,
+  k_row = 5,
+  margins = c(NA, 200, 60, NA),
+  fontsize_row = 4,
+  fontsize_col = 9,
+  main = "World Happiness Score and Indicators by Country, 2018",
+  xlab = "World Happiness Indicators",
+  ylab = "Countries"
+)
+```
+
+:::
+
+This heatmap is the most suitable version for presentation because it combines clearer colour, readable labels and meaningful row clustering.
+
+## My Extension: Top countries by happiness score
+
+As a small extension, we create a compact table showing the top countries by happiness score.
+
+```{r}
+top_happiness <- wh_selected %>%
+  select(
+    Country,
+    Region,
+    `Happiness score`,
+    `GDP per capita`,
+    `Social support`,
+    `Healthy life expectancy`,
+    `Freedom to make life choices`
+  ) %>%
+  arrange(desc(`Happiness score`)) %>%
+  slice_head(n = 10)
+```
+
+```{r}
+top_happiness %>%
+  knitr::kable(format = "html", digits = 3)
+```
+
+### Bar chart of top 10 countries
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(
+  top_happiness,
+  aes(
+    x = reorder(Country, `Happiness score`),
+    y = `Happiness score`
+  )
+) +
+  geom_col(
+    fill = "#2A6F6F",
+    color = "#1F1F1F",
+    linewidth = 0.35,
+    width = 0.65
+  ) +
+  geom_text(
+    aes(label = round(`Happiness score`, 2)),
+    hjust = -0.2,
+    size = 3.3
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "Top 10 Countries by Happiness Score, 2018",
+    subtitle = "A simple reference chart before reading the heatmap",
+    x = "Country",
+    y = "Happiness score"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    panel.grid.minor = element_blank()
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(
+  top_happiness,
+  aes(
+    x = reorder(Country, `Happiness score`),
+    y = `Happiness score`
+  )
+) +
+  geom_col(
+    fill = "#2A6F6F",
+    color = "#1F1F1F",
+    linewidth = 0.35,
+    width = 0.65
+  ) +
+  geom_text(
+    aes(label = round(`Happiness score`, 2)),
+    hjust = -0.2,
+    size = 3.3
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "Top 10 Countries by Happiness Score, 2018",
+    subtitle = "A simple reference chart before reading the heatmap",
+    x = "Country",
+    y = "Happiness score"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    panel.grid.minor = element_blank()
+  )
+```
+
+:::
+
+This extension gives a quick numerical entry point before interpreting the full multivariate heatmap.
+
+## Reference
+
+- heatmaply package
+- seriation package
+- dendextend package
+- tidyverse documentation
+- World Happiness 2018 Report
