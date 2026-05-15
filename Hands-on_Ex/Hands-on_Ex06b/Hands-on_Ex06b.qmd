@@ -7,6 +7,8 @@ format:
     number-sections: true
     code-fold: false
 editor: visual
+execute:
+  freeze: auto
 ---
 
 # Visual Correlation Analysis
@@ -21,7 +23,7 @@ In this hands-on exercise, we use the wine quality dataset to explore different 
 
 - scatterplot matrix using `pairs()`;
 - correlation matrix using `ggstatsplot`;
-- grouped correlation matrix by wine type;
+- separate correlation matrices for red and white wine;
 - corrgram using `corrplot`;
 - mixed corrgram with both shapes and numbers;
 - significance testing for correlation pairs;
@@ -74,7 +76,7 @@ glimpse(wine)
 knitr::kable(head(wine), format = "html")
 ```
 
-The variables `quality` and `type` are not both treated as continuous chemical measurements. For most correlation plots, we focus mainly on the numerical physicochemical variables.
+For most correlation plots, we focus only on numerical variables. The wine `type` variable is useful for grouping, but it should not be placed directly inside a numerical correlation matrix.
 
 ```{r}
 wine_num <- wine %>%
@@ -98,13 +100,13 @@ The first plot uses the default `pairs()` function on the numerical wine variabl
 ## The plot
 
 ```{r}
-pairs(wine[, 2:12])
+pairs(wine_num)
 ```
 
 ## The code chunk
 
 ```{r eval=FALSE}
-pairs(wine[, 2:12])
+pairs(wine_num)
 ```
 
 :::
@@ -115,21 +117,19 @@ This scatterplot matrix gives a quick overview of pairwise relationships. Howeve
 
 A correlation matrix is symmetric. The upper triangle and lower triangle contain the same variable pairs. Therefore, it is often cleaner to display only one side of the matrix.
 
-The code below removes the upper panels.
-
 ::: {.panel-tabset}
 
 ## The plot
 
 ```{r}
-pairs(wine[, 2:12],
+pairs(wine_num,
       upper.panel = NULL)
 ```
 
 ## The code chunk
 
 ```{r eval=FALSE}
-pairs(wine[, 2:12],
+pairs(wine_num,
       upper.panel = NULL)
 ```
 
@@ -144,14 +144,14 @@ We can also remove the lower panels and display only the upper half.
 ## The plot
 
 ```{r}
-pairs(wine[, 2:12],
+pairs(wine_num,
       lower.panel = NULL)
 ```
 
 ## The code chunk
 
 ```{r eval=FALSE}
-pairs(wine[, 2:12],
+pairs(wine_num,
       lower.panel = NULL)
 ```
 
@@ -181,7 +181,7 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
 ## The plot
 
 ```{r}
-pairs(wine[, 2:12],
+pairs(wine_num,
       upper.panel = panel.cor)
 ```
 
@@ -199,7 +199,7 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
   text(0.5, 0.5, txt, cex = cex.cor * (1 + r) / 2)
 }
 
-pairs(wine[, 2:12],
+pairs(wine_num,
       upper.panel = panel.cor)
 ```
 
@@ -207,7 +207,7 @@ pairs(wine[, 2:12],
 
 This design is more informative than the default scatterplot matrix because it combines shape inspection with numerical correlation strength.
 
-## Visualising Correlation Matrix: ggcormat()
+## Visualising Correlation Matrix: ggcorrmat()
 
 When the dataset is large, scatterplot matrices can become too crowded. A corrgram is often more useful because it compresses the relationships into a clean matrix.
 
@@ -221,8 +221,7 @@ In this section, `ggstatsplot::ggcorrmat()` is used. It creates a correlation ma
 
 ```{r}
 ggstatsplot::ggcorrmat(
-  data = wine,
-  cor.vars = 1:11
+  data = wine_num
 )
 ```
 
@@ -230,8 +229,7 @@ ggstatsplot::ggcorrmat(
 
 ```{r eval=FALSE}
 ggstatsplot::ggcorrmat(
-  data = wine,
-  cor.vars = 1:11
+  data = wine_num
 )
 ```
 
@@ -247,8 +245,7 @@ The next version customises the plot with hierarchical ordering, black outlines 
 
 ```{r}
 ggstatsplot::ggcorrmat(
-  data = wine,
-  cor.vars = 1:11,
+  data = wine_num,
   ggcorrplot.args = list(
     outline.color = "black",
     hc.order = TRUE,
@@ -264,8 +261,7 @@ ggstatsplot::ggcorrmat(
 
 ```{r eval=FALSE}
 ggstatsplot::ggcorrmat(
-  data = wine,
-  cor.vars = 1:11,
+  data = wine_num,
   ggcorrplot.args = list(
     outline.color = "black",
     hc.order = TRUE,
@@ -283,65 +279,101 @@ The hierarchical ordering helps place similar variables closer together. This ma
 
 ## Building multiple plots
 
-The function `grouped_ggcorrmat()` allows the correlation matrix to be created separately for different groups. In this dataset, `type` separates red wine and white wine.
+The original idea is to compare the correlation structure across red wine and white wine. Instead of using `grouped_ggcorrmat()`, which may fail during Quarto rendering, this version creates two separate correlation matrices. This is more stable and easier to display on the website.
 
-This is useful because the same pair of variables may have different correlation patterns across groups.
+### Red wine correlation matrix
 
 ::: {.panel-tabset}
 
 ## The plot
 
 ```{r}
-grouped_ggcorrmat(
-  data = wine,
-  cor.vars = 1:11,
-  grouping.var = type,
-  type = "robust",
-  p.adjust.method = "holm",
-  plotgrid.args = list(ncol = 2),
+wine_red <- wine %>%
+  filter(type == "red") %>%
+  select(where(is.numeric))
+
+ggstatsplot::ggcorrmat(
+  data = wine_red,
   ggcorrplot.args = list(
     outline.color = "black",
     hc.order = TRUE,
     tl.cex = 9,
     colors = c("#D95F02", "white", "#2A6F6F")
   ),
-  annotation.args = list(
-    tag_levels = "a",
-    title = "Correlogram for Wine Dataset by Type",
-    subtitle = "Separate correlation matrices for red and white wine",
-    caption = "Dataset: UCI Machine Learning Repository"
-  )
+  title = "Correlogram for Red Wine",
+  subtitle = "Correlation matrix for red wine observations only"
 )
 ```
 
 ## The code chunk
 
 ```{r eval=FALSE}
-grouped_ggcorrmat(
-  data = wine,
-  cor.vars = 1:11,
-  grouping.var = type,
-  type = "robust",
-  p.adjust.method = "holm",
-  plotgrid.args = list(ncol = 2),
+wine_red <- wine %>%
+  filter(type == "red") %>%
+  select(where(is.numeric))
+
+ggstatsplot::ggcorrmat(
+  data = wine_red,
   ggcorrplot.args = list(
     outline.color = "black",
     hc.order = TRUE,
     tl.cex = 9,
     colors = c("#D95F02", "white", "#2A6F6F")
   ),
-  annotation.args = list(
-    tag_levels = "a",
-    title = "Correlogram for Wine Dataset by Type",
-    subtitle = "Separate correlation matrices for red and white wine",
-    caption = "Dataset: UCI Machine Learning Repository"
-  )
+  title = "Correlogram for Red Wine",
+  subtitle = "Correlation matrix for red wine observations only"
 )
 ```
 
 :::
 
-This grouped version is more analytical than one overall matrix. It shows whether the same chemical attributes behave similarly across wine types or whether the correlation structure changes.
+### White wine correlation matrix
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+wine_white <- wine %>%
+  filter(type == "white") %>%
+  select(where(is.numeric))
+
+ggstatsplot::ggcorrmat(
+  data = wine_white,
+  ggcorrplot.args = list(
+    outline.color = "black",
+    hc.order = TRUE,
+    tl.cex = 9,
+    colors = c("#D95F02", "white", "#2A6F6F")
+  ),
+  title = "Correlogram for White Wine",
+  subtitle = "Correlation matrix for white wine observations only"
+)
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+wine_white <- wine %>%
+  filter(type == "white") %>%
+  select(where(is.numeric))
+
+ggstatsplot::ggcorrmat(
+  data = wine_white,
+  ggcorrplot.args = list(
+    outline.color = "black",
+    hc.order = TRUE,
+    tl.cex = 9,
+    colors = c("#D95F02", "white", "#2A6F6F")
+  ),
+  title = "Correlogram for White Wine",
+  subtitle = "Correlation matrix for white wine observations only"
+)
+```
+
+:::
+
+This grouped comparison is more analytical than one overall matrix. It shows whether the same chemical attributes behave similarly across wine types or whether the correlation structure changes.
 
 ## Visualising Correlation Matrix using corrplot Package
 
@@ -350,7 +382,7 @@ The `corrplot` package is one of the most commonly used tools for visualising co
 Before plotting, we first compute the correlation matrix using `cor()`.
 
 ```{r}
-wine.cor <- cor(wine[, 1:11], use = "complete.obs")
+wine.cor <- cor(wine_num, use = "complete.obs")
 ```
 
 ```{r}
@@ -513,12 +545,16 @@ cor.mtest <- function(mat, conf.level = 0.95) {
     }
   }
   
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  colnames(lowCI.mat) <- rownames(lowCI.mat) <- colnames(mat)
+  colnames(uppCI.mat) <- rownames(uppCI.mat) <- colnames(mat)
+  
   return(list(p = p.mat, lowCI = lowCI.mat, uppCI = uppCI.mat))
 }
 ```
 
 ```{r}
-wine.sig <- cor.mtest(wine[, 1:11], conf.level = 0.95)
+wine.sig <- cor.mtest(wine_num, conf.level = 0.95)
 ```
 
 ::: {.panel-tabset}
@@ -541,7 +577,7 @@ corrplot(
 ## The code chunk
 
 ```{r eval=FALSE}
-wine.sig <- cor.mtest(wine[, 1:11], conf.level = 0.95)
+wine.sig <- cor.mtest(wine_num, conf.level = 0.95)
 
 corrplot(
   wine.cor,
@@ -640,8 +676,7 @@ This reordered corrgram is useful when we want to discover groups of variables t
 As a small extension, we can focus specifically on the relationship between wine quality and the other numerical attributes. This is more business-oriented because quality is the outcome variable that producers and analysts usually care about.
 
 ```{r}
-quality_cor <- wine %>%
-  select(where(is.numeric)) %>%
+quality_cor <- wine_num %>%
   cor(use = "complete.obs") %>%
   as.data.frame() %>%
   rownames_to_column("variable") %>%
@@ -680,7 +715,7 @@ ggplot(quality_cor,
   ) +
   labs(
     title = "Correlation between Wine Quality and Chemical Attributes",
-    subtitle = "Alcohol usually shows a stronger positive relationship with quality than many other attributes",
+    subtitle = "This view focuses on the attributes most related to wine quality",
     x = "Wine attribute",
     y = "Correlation with quality"
   ) +
@@ -695,8 +730,7 @@ ggplot(quality_cor,
 ## The code chunk
 
 ```{r eval=FALSE}
-quality_cor <- wine %>%
-  select(where(is.numeric)) %>%
+quality_cor <- wine_num %>%
   cor(use = "complete.obs") %>%
   as.data.frame() %>%
   rownames_to_column("variable") %>%
@@ -725,7 +759,7 @@ ggplot(quality_cor,
   ) +
   labs(
     title = "Correlation between Wine Quality and Chemical Attributes",
-    subtitle = "Alcohol usually shows a stronger positive relationship with quality than many other attributes",
+    subtitle = "This view focuses on the attributes most related to wine quality",
     x = "Wine attribute",
     y = "Correlation with quality"
   ) +
