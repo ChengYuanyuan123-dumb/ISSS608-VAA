@@ -1,0 +1,861 @@
+---
+title: "Hands-on_Ex05a"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+---
+
+# Visualising Distribution
+
+## Learning Outcome
+
+In this exercise, we learn how to visualise data distribution using two methods: ridgeline plot and raincloud plot.
+
+A ridgeline plot is useful when we want to compare the distribution of one numeric variable across many groups. A raincloud plot is useful because it combines density shape, boxplot summary, and individual data points in one chart.
+
+By the end of this exercise, we should be able to:
+
+- create ridgeline plots using `ggridges`;
+- create raincloud plots using `ggdist`;
+- compare distribution shapes across different groups;
+- explain what the chart tells us.
+
+## Getting Started
+
+### Installing and loading the packages
+
+```{r}
+pacman::p_load(ggdist, ggridges, ggthemes,
+               colorspace, tidyverse)
+```
+
+### Importing the data
+
+```{r}
+exam <- read_csv("../data/Exam_data.csv")
+```
+
+```{r}
+glimpse(exam)
+```
+
+```{r}
+summary(exam$ENGLISH)
+```
+
+## Visualising Distribution with Ridgeline Plot
+
+A ridgeline plot is useful when the same numeric variable needs to be compared across multiple groups. In this example, the English score distribution is compared across different classes.
+
+The advantage of this method is that it keeps all classes on one shared x-axis, making it easier to compare the shape, centre and spread of each class distribution.
+
+### Plotting ridgeline graph: ggridges method
+
+The basic ridgeline plot can be created using `geom_density_ridges()`. Here, `ENGLISH` is placed on the x-axis and `CLASS` is placed on the y-axis.
+
+The fill colour is adjusted to a muted teal tone to make the plot look cleaner and more consistent with the overall website style.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS)) +
+  geom_density_ridges(
+    scale = 2.8,
+    rel_min_height = 0.01,
+    bandwidth = 3.2,
+    fill = lighten("#2A6F6F", .35),
+    color = "white",
+    linewidth = 0.35
+  ) +
+  scale_x_continuous(
+    name = "English scores",
+    expand = c(0, 0)
+  ) +
+  scale_y_discrete(
+    name = NULL,
+    expand = expansion(add = c(0.2, 2.4))
+  ) +
+  labs(
+    title = "Distribution of English Scores by Class",
+    subtitle = "Ridgeline plot allows multiple class distributions to be compared together"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS)) +
+  geom_density_ridges(
+    scale = 2.8,
+    rel_min_height = 0.01,
+    bandwidth = 3.2,
+    fill = lighten("#2A6F6F", .35),
+    color = "white",
+    linewidth = 0.35
+  ) +
+  scale_x_continuous(
+    name = "English scores",
+    expand = c(0, 0)
+  ) +
+  scale_y_discrete(
+    name = NULL,
+    expand = expansion(add = c(0.2, 2.4))
+  ) +
+  labs(
+    title = "Distribution of English Scores by Class",
+    subtitle = "Ridgeline plot allows multiple class distributions to be compared together"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+:::
+
+From this plot, we can compare whether some classes have more concentrated English scores while others show wider score variation. A taller or sharper ridge usually suggests that many students are clustered around a similar score range.
+
+### Varying fill colors along the x axis
+
+Instead of filling each ridge with one fixed colour, we can allow the colour to change along the x-axis. This is done using `geom_density_ridges_gradient()`.
+
+This version makes the score direction more visible because lower and higher English scores are represented by different colour intensity.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = after_stat(x))) +
+  geom_density_ridges_gradient(
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_viridis_c(
+    name = "English score",
+    option = "C"
+  ) +
+  scale_x_continuous(
+    name = "English scores",
+    expand = c(0, 0)
+  ) +
+  scale_y_discrete(
+    name = NULL,
+    expand = expansion(add = c(0.2, 2.4))
+  ) +
+  labs(
+    title = "Gradient Ridgeline Plot of English Scores",
+    subtitle = "Colour changes along the score axis to highlight lower and higher score ranges"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = after_stat(x))) +
+  geom_density_ridges_gradient(
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_viridis_c(
+    name = "English score",
+    option = "C"
+  ) +
+  scale_x_continuous(
+    name = "English scores",
+    expand = c(0, 0)
+  ) +
+  scale_y_discrete(
+    name = NULL,
+    expand = expansion(add = c(0.2, 2.4))
+  ) +
+  labs(
+    title = "Gradient Ridgeline Plot of English Scores",
+    subtitle = "Colour changes along the score axis to highlight lower and higher score ranges"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+:::
+
+This plot is useful when the audience needs to quickly identify where low, middle and high scores appear in each class distribution.
+
+### Mapping the probabilities directly onto colour
+
+Another way to colour a ridgeline plot is to map the empirical cumulative distribution function, also known as ECDF, onto the fill colour. This helps highlight the central region and tail areas of the distribution.
+
+In the code below, `calc_ecdf = TRUE` is important because it tells `stat_density_ridges()` to calculate ECDF-related values.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = 0.5 - abs(0.5 - after_stat(ecdf)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_viridis_c(
+    name = "Tail probability",
+    option = "D",
+    direction = -1
+  ) +
+  labs(
+    title = "Ridgeline Plot with Probability-based Colouring",
+    subtitle = "The colour scale helps separate central values from distribution tails"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = 0.5 - abs(0.5 - after_stat(ecdf)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_viridis_c(
+    name = "Tail probability",
+    option = "D",
+    direction = -1
+  ) +
+  labs(
+    title = "Ridgeline Plot with Probability-based Colouring",
+    subtitle = "The colour scale helps separate central values from distribution tails"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+:::
+
+::: {.callout-important}
+The argument `calc_ecdf = TRUE` should not be removed. Without it, the ECDF-based colour mapping will not work properly.
+:::
+
+### Ridgeline plots with quantile lines
+
+Quantile lines can be added to show how the distribution is divided into different sections. In the example below, the distribution is divided into four quartiles.
+
+This makes the ridgeline plot more informative because it shows not only the density shape, but also the internal score segmentation.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = factor(after_stat(quantile)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    quantiles = 4,
+    quantile_lines = TRUE,
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_viridis_d(
+    name = "Quartiles",
+    option = "C"
+  ) +
+  labs(
+    title = "Ridgeline Plot with Quartile Lines",
+    subtitle = "Quartile lines divide each class distribution into four score sections"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = factor(after_stat(quantile)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    quantiles = 4,
+    quantile_lines = TRUE,
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_viridis_d(
+    name = "Quartiles",
+    option = "C"
+  ) +
+  labs(
+    title = "Ridgeline Plot with Quartile Lines",
+    subtitle = "Quartile lines divide each class distribution into four score sections"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+:::
+
+We can also define the quantiles manually. The next chart separates the lower tail, middle range and upper tail using 2.5% and 97.5% cut points.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = factor(after_stat(quantile)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    quantiles = c(0.025, 0.975),
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_manual(
+    name = "Probability",
+    values = c("#D95F02A0", "#2A6F6FA0", "#7570B3A0"),
+    labels = c("(0, 0.025]", "(0.025, 0.975]", "(0.975, 1]")
+  ) +
+  labs(
+    title = "Ridgeline Plot with Tail Probability Cut Points",
+    subtitle = "Lower and upper tails are separated from the main score range"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = ENGLISH,
+           y = CLASS,
+           fill = factor(after_stat(quantile)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    quantiles = c(0.025, 0.975),
+    scale = 2.8,
+    rel_min_height = 0.01,
+    color = "white",
+    linewidth = 0.3
+  ) +
+  scale_fill_manual(
+    name = "Probability",
+    values = c("#D95F02A0", "#2A6F6FA0", "#7570B3A0"),
+    labels = c("(0, 0.025]", "(0.025, 0.975]", "(0.975, 1]")
+  ) +
+  labs(
+    title = "Ridgeline Plot with Tail Probability Cut Points",
+    subtitle = "Lower and upper tails are separated from the main score range"
+  ) +
+  theme_ridges() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+:::
+
+This version is useful when the analysis is more interested in extreme score ranges, such as unusually low or unusually high English scores.
+
+## Visualising Distribution with Raincloud Plot
+
+A raincloud plot combines three layers:
+
+- a half-density plot showing the distribution shape;
+- a boxplot showing median and interquartile range;
+- dots showing individual observations.
+
+Compared with a normal boxplot, a raincloud plot gives a fuller view because it shows both summary statistics and the actual data pattern.
+
+In this section, the English score distribution is compared across different race groups.
+
+### Plotting a Half Eye graph
+
+The first layer is created using `stat_halfeye()` from the `ggdist` package. It produces a half-density shape.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  labs(
+    title = "Half-eye Plot of English Scores by Race",
+    subtitle = "The half-density layer shows the distribution shape for each group",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal()
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  labs(
+    title = "Half-eye Plot of English Scores by Race",
+    subtitle = "The half-density layer shows the distribution shape for each group",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal()
+```
+
+:::
+
+::: {.callout-tip}
+Setting `.width = 0` and `point_colour = NA` removes the interval and point marker, leaving a cleaner half-density shape.
+:::
+
+### Adding the boxplot with `geom_boxplot()`
+
+Next, a narrow boxplot is added on top of the half-eye layer. The boxplot provides a compact summary of the median, lower quartile and upper quartile.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  geom_boxplot(
+    width = .18,
+    outlier.shape = NA,
+    alpha = 0.55,
+    color = "#1F1F1F"
+  ) +
+  labs(
+    title = "Half-eye Plot with Boxplot Layer",
+    subtitle = "The boxplot adds a statistical summary to the distribution shape",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal()
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  geom_boxplot(
+    width = .18,
+    outlier.shape = NA,
+    alpha = 0.55,
+    color = "#1F1F1F"
+  ) +
+  labs(
+    title = "Half-eye Plot with Boxplot Layer",
+    subtitle = "The boxplot adds a statistical summary to the distribution shape",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal()
+```
+
+:::
+
+### Adding the Dot Plots with `stat_dots()`
+
+The third layer adds dots to represent individual observations. This makes the plot less abstract because the viewer can see the actual data points behind the distribution.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  geom_boxplot(
+    width = .18,
+    outlier.shape = NA,
+    alpha = 0.55,
+    color = "#1F1F1F"
+  ) +
+  stat_dots(
+    side = "left",
+    justification = 1.15,
+    binwidth = .5,
+    dotsize = 1.6,
+    color = "#1F1F1F",
+    fill = "#F2A65A"
+  ) +
+  labs(
+    title = "Raincloud Plot with Dot Layer",
+    subtitle = "Dots show the individual observations within each race group",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal()
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  geom_boxplot(
+    width = .18,
+    outlier.shape = NA,
+    alpha = 0.55,
+    color = "#1F1F1F"
+  ) +
+  stat_dots(
+    side = "left",
+    justification = 1.15,
+    binwidth = .5,
+    dotsize = 1.6,
+    color = "#1F1F1F",
+    fill = "#F2A65A"
+  ) +
+  labs(
+    title = "Raincloud Plot with Dot Layer",
+    subtitle = "Dots show the individual observations within each race group",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal()
+```
+
+:::
+
+This layer is useful because it prevents the chart from hiding the sample size and the actual spread of observations.
+
+### Finishing touch
+
+Finally, `coord_flip()` is used to turn the chart horizontally. This makes the raincloud shape easier to read and gives more space for group labels.
+
+A clean minimal theme is used here instead of a heavy publication theme, so the chart looks more modern and consistent with the customised colourway.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  geom_boxplot(
+    width = .18,
+    outlier.shape = NA,
+    alpha = 0.55,
+    color = "#1F1F1F"
+  ) +
+  stat_dots(
+    side = "left",
+    justification = 1.15,
+    binwidth = .5,
+    dotsize = 1.45,
+    color = "#1F1F1F",
+    fill = "#F2A65A"
+  ) +
+  coord_flip() +
+  labs(
+    title = "Raincloud Plot of English Scores by Race",
+    subtitle = "Density, boxplot and individual dots are combined in one chart",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    panel.grid.minor = element_blank()
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(exam,
+       aes(x = RACE,
+           y = ENGLISH)) +
+  stat_halfeye(
+    adjust = 0.5,
+    justification = -0.25,
+    .width = 0,
+    point_colour = NA,
+    fill = lighten("#2A6F6F", .35),
+    color = "#1F1F1F"
+  ) +
+  geom_boxplot(
+    width = .18,
+    outlier.shape = NA,
+    alpha = 0.55,
+    color = "#1F1F1F"
+  ) +
+  stat_dots(
+    side = "left",
+    justification = 1.15,
+    binwidth = .5,
+    dotsize = 1.45,
+    color = "#1F1F1F",
+    fill = "#F2A65A"
+  ) +
+  coord_flip() +
+  labs(
+    title = "Raincloud Plot of English Scores by Race",
+    subtitle = "Density, boxplot and individual dots are combined in one chart",
+    x = "Race",
+    y = "English scores"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    panel.grid.minor = element_blank()
+  )
+```
+
+:::
+
+### My Extension: Comparing Central Tendency by Race
+
+To add a small extension beyond the original tutorial, we can calculate the median English score for each race group. This provides a simple numerical check to support the visual comparison made in the raincloud plot.
+
+```{r}
+race_summary <- exam %>%
+  group_by(RACE) %>%
+  summarise(
+    n = n(),
+    mean_english = mean(ENGLISH, na.rm = TRUE),
+    median_english = median(ENGLISH, na.rm = TRUE),
+    sd_english = sd(ENGLISH, na.rm = TRUE)
+  )
+
+race_summary
+```
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggplot(race_summary,
+       aes(x = reorder(RACE, median_english),
+           y = median_english)) +
+  geom_col(
+    fill = "#2A6F6F",
+    color = "#1F1F1F",
+    linewidth = 0.35,
+    width = 0.65
+  ) +
+  geom_text(
+    aes(label = round(median_english, 1)),
+    vjust = -0.4,
+    size = 3.5
+  ) +
+  scale_y_continuous(
+    name = "Median English score",
+    expand = expansion(mult = c(0, 0.12))
+  ) +
+  labs(
+    title = "Median English Score by Race",
+    subtitle = "A simple summary chart to support the raincloud plot interpretation",
+    x = "Race"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    panel.grid.minor = element_blank()
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+race_summary <- exam %>%
+  group_by(RACE) %>%
+  summarise(
+    n = n(),
+    mean_english = mean(ENGLISH, na.rm = TRUE),
+    median_english = median(ENGLISH, na.rm = TRUE),
+    sd_english = sd(ENGLISH, na.rm = TRUE)
+  )
+
+ggplot(race_summary,
+       aes(x = reorder(RACE, median_english),
+           y = median_english)) +
+  geom_col(
+    fill = "#2A6F6F",
+    color = "#1F1F1F",
+    linewidth = 0.35,
+    width = 0.65
+  ) +
+  geom_text(
+    aes(label = round(median_english, 1)),
+    vjust = -0.4,
+    size = 3.5
+  ) +
+  scale_y_continuous(
+    name = "Median English score",
+    expand = expansion(mult = c(0, 0.12))
+  ) +
+  labs(
+    title = "Median English Score by Race",
+    subtitle = "A simple summary chart to support the raincloud plot interpretation",
+    x = "Race"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    panel.grid.minor = element_blank()
+  )
+```
+
+:::
+
+This extension is intentionally simple. The raincloud plot shows the full distribution, while the median bar chart gives a quick business-style summary. Used together, they make the interpretation clearer without making the exercise too complicated.
+
+## Reference
+
+- Introducing Ridgeline Plots
+- Fundamentals of Data Visualization
+- Raincloud plots: a multi-platform tool for robust data visualisation
+- ggdist documentation
