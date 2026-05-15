@@ -1,0 +1,626 @@
+---
+title: "Hands-on_Ex06a"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+---
+
+# Creating Ternary Plot with R
+
+## Overview
+
+A ternary plot is used to visualise data made up of three parts. The three components are placed inside a triangle, and each point represents how the total is divided among the three components.
+
+This type of chart is useful when the main question is not about absolute size, but about **composition**. For example, a population area can be described by the proportion of young residents, economically active residents and old residents.
+
+In this hands-on exercise, ternary plots are used to study the population structure of Singapore. The focus is on comparing the balance between three age groups across planning areas and subzones.
+
+By the end of this exercise, we should be able to:
+
+- prepare population data for ternary plotting;
+- derive young, active and old population measures;
+- create a static ternary plot using `ggtern`;
+- improve the ternary plot with labels, colour and theme settings;
+- create an interactive ternary plot using `plotly`;
+- interpret population structure from a compositional point of view.
+
+## Installing and launching R packages
+
+For this exercise, three main groups of packages are required.
+
+`ggtern` is used to create static ternary diagrams. `plotly` is used to build interactive ternary plots. `tidyverse` is used for importing, cleaning and reshaping the data.
+
+```{r}
+pacman::p_load(plotly, ggtern, tidyverse, knitr)
+```
+
+## Data Preparation
+
+### The data
+
+The dataset used in this hands-on exercise is `respopagsex2000to2018_tidy.csv`. It contains Singapore resident population data by planning area, subzone, age group, sex and dwelling type.
+
+For this exercise, the key variables are:
+
+- `Year`: the year of observation;
+- `PA`: planning area;
+- `SZ`: subzone;
+- `AG`: age group;
+- `Population`: number of residents.
+
+The goal is to aggregate age groups into three broad categories:
+
+- `YOUNG`: younger population;
+- `ACTIVE`: economically active age group;
+- `OLD`: older population.
+
+### Importing Data
+
+To reduce path errors during rendering, the code below checks several possible file locations. This is useful because your data file may be stored inside the current exercise folder or inside the common `data` folder.
+
+```{r}
+pop_path <- case_when(
+  file.exists("respopagsex2000to2018_tidy.csv") ~ "respopagsex2000to2018_tidy.csv",
+  file.exists("data/respopagsex2000to2018_tidy.csv") ~ "data/respopagsex2000to2018_tidy.csv",
+  file.exists("../data/respopagsex2000to2018_tidy.csv") ~ "../data/respopagsex2000to2018_tidy.csv",
+  file.exists("../../data/respopagsex2000to2018_tidy.csv") ~ "../../data/respopagsex2000to2018_tidy.csv",
+  TRUE ~ NA_character_
+)
+
+if (is.na(pop_path)) {
+  stop("respopagsex2000to2018_tidy.csv cannot be found. Please place it in this folder or in the data folder.")
+}
+
+pop_data <- read_csv(pop_path)
+```
+
+```{r}
+glimpse(pop_data)
+```
+
+```{r}
+knitr::kable(head(pop_data), format = "html")
+```
+
+The imported dataset is in tidy format, meaning each row represents a specific combination of year, area, subzone, age group and other demographic attributes.
+
+### Preparing the Data
+
+Before building the ternary plot, the data must be reshaped. Each age group is originally stored as a category under `AG`. To calculate broad age groups, we first spread the age groups into separate columns.
+
+The three derived measures are:
+
+- `YOUNG`: sum of younger age groups;
+- `ACTIVE`: sum of working-age groups;
+- `OLD`: sum of older age groups.
+
+```{r}
+agpop_mutated <- pop_data %>%
+  mutate(`Year` = as.character(Year)) %>%
+  spread(AG, Population) %>%
+  mutate(YOUNG = rowSums(.[4:8], na.rm = TRUE)) %>%
+  mutate(ACTIVE = rowSums(.[9:16], na.rm = TRUE)) %>%
+  mutate(OLD = rowSums(.[17:21], na.rm = TRUE)) %>%
+  mutate(TOTAL = rowSums(.[22:24], na.rm = TRUE)) %>%
+  filter(Year == 2018) %>%
+  filter(TOTAL > 0)
+```
+
+```{r}
+glimpse(agpop_mutated)
+```
+
+```{r}
+knitr::kable(head(agpop_mutated), format = "html")
+```
+
+The resulting dataset now contains the three variables needed for the ternary plot: `YOUNG`, `ACTIVE` and `OLD`.
+
+### My Extension: Converting counts into percentage shares
+
+The ternary plot can use the raw counts directly, but percentage shares are easier to explain. Therefore, this small extension calculates the share of young, active and old residents for each area.
+
+```{r}
+agpop_share <- agpop_mutated %>%
+  mutate(
+    YOUNG_SHARE = YOUNG / TOTAL,
+    ACTIVE_SHARE = ACTIVE / TOTAL,
+    OLD_SHARE = OLD / TOTAL
+  )
+```
+
+```{r}
+agpop_share %>%
+  select(Year, PA, SZ, YOUNG_SHARE, ACTIVE_SHARE, OLD_SHARE, TOTAL) %>%
+  head() %>%
+  knitr::kable(format = "html", digits = 3)
+```
+
+This extension makes the interpretation more direct. Instead of only saying that an area has many young or old residents, we can describe its population structure as a proportion of the total population.
+
+## Plotting Ternary Diagram with R
+
+A ternary plot places three variables on a triangular coordinate system. Every point is positioned according to the balance of the three components.
+
+For this exercise:
+
+- the bottom-left axis represents young population;
+- the bottom-right axis represents active population;
+- the top axis represents old population.
+
+A point closer to one corner means that the corresponding component has a higher share.
+
+### Plotting a static ternary diagram
+
+The simplest ternary plot can be created using `ggtern()`. In the code below, `YOUNG`, `ACTIVE` and `OLD` are mapped to the three ternary axes.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggtern(
+  data = agpop_mutated,
+  aes(x = YOUNG,
+      y = ACTIVE,
+      z = OLD)
+) +
+  geom_point(
+    color = "#2A6F6F",
+    alpha = 0.65,
+    size = 1.6
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggtern(
+  data = agpop_mutated,
+  aes(x = YOUNG,
+      y = ACTIVE,
+      z = OLD)
+) +
+  geom_point(
+    color = "#2A6F6F",
+    alpha = 0.65,
+    size = 1.6
+  )
+```
+
+:::
+
+This first plot is useful as a basic check. It confirms whether the three age groups can be displayed in a ternary coordinate system.
+
+However, the chart still needs better labels and styling before it becomes suitable for interpretation.
+
+### Improving the ternary plot
+
+The next version adds a clear title and applies a cleaner ternary theme. A muted teal colour is used to keep the visual style consistent with the previous exercises.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggtern(
+  data = agpop_mutated,
+  aes(x = YOUNG,
+      y = ACTIVE,
+      z = OLD)
+) +
+  geom_point(
+    color = "#2A6F6F",
+    alpha = 0.65,
+    size = 1.7
+  ) +
+  labs(
+    title = "Population Structure of Singapore, 2018",
+    subtitle = "Ternary plot of young, active and old population groups",
+    T = "Young",
+    L = "Active",
+    R = "Old"
+  ) +
+  theme_rgbw() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggtern(
+  data = agpop_mutated,
+  aes(x = YOUNG,
+      y = ACTIVE,
+      z = OLD)
+) +
+  geom_point(
+    color = "#2A6F6F",
+    alpha = 0.65,
+    size = 1.7
+  ) +
+  labs(
+    title = "Population Structure of Singapore, 2018",
+    subtitle = "Ternary plot of young, active and old population groups",
+    T = "Young",
+    L = "Active",
+    R = "Old"
+  ) +
+  theme_rgbw() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9)
+  )
+```
+
+:::
+
+This plot shows how Singapore’s subzones differ in population composition. Areas with a relatively older population will move closer to the old corner, while areas with more working-age residents will be located closer to the active side.
+
+### Static ternary plot with population size
+
+A useful extension is to map total population to point size. This allows the plot to show both composition and relative scale.
+
+The triangle still shows the age structure, while the point size gives a quick sense of which subzones have larger population bases.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggtern(
+  data = agpop_share,
+  aes(x = YOUNG_SHARE,
+      y = ACTIVE_SHARE,
+      z = OLD_SHARE)
+) +
+  geom_point(
+    aes(size = TOTAL),
+    color = "#2A6F6F",
+    alpha = 0.55
+  ) +
+  scale_size_continuous(
+    name = "Total population",
+    range = c(1, 5)
+  ) +
+  labs(
+    title = "Population Composition and Size by Singapore Subzone, 2018",
+    subtitle = "Point position shows age composition; point size shows total population",
+    T = "Young share",
+    L = "Active share",
+    R = "Old share"
+  ) +
+  theme_rgbw() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    legend.position = "right"
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggtern(
+  data = agpop_share,
+  aes(x = YOUNG_SHARE,
+      y = ACTIVE_SHARE,
+      z = OLD_SHARE)
+) +
+  geom_point(
+    aes(size = TOTAL),
+    color = "#2A6F6F",
+    alpha = 0.55
+  ) +
+  scale_size_continuous(
+    name = "Total population",
+    range = c(1, 5)
+  ) +
+  labs(
+    title = "Population Composition and Size by Singapore Subzone, 2018",
+    subtitle = "Point position shows age composition; point size shows total population",
+    T = "Young share",
+    L = "Active share",
+    R = "Old share"
+  ) +
+  theme_rgbw() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    legend.position = "right"
+  )
+```
+
+:::
+
+This version is slightly more informative because it avoids treating every subzone as equally large. A small subzone and a large subzone may have similar composition, but they matter differently when interpreted from a planning perspective.
+
+### My Extension: Highlighting ageing-leaning subzones
+
+To add more analytical value, we can classify subzones by whether their old population share is above the median. This does not overcomplicate the analysis, but it makes the ternary plot easier to interpret.
+
+```{r}
+old_share_median <- median(agpop_share$OLD_SHARE, na.rm = TRUE)
+
+agpop_share <- agpop_share %>%
+  mutate(
+    Ageing_Group = if_else(
+      OLD_SHARE >= old_share_median,
+      "Higher old-age share",
+      "Lower old-age share"
+    )
+  )
+```
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+ggtern(
+  data = agpop_share,
+  aes(x = YOUNG_SHARE,
+      y = ACTIVE_SHARE,
+      z = OLD_SHARE)
+) +
+  geom_point(
+    aes(color = Ageing_Group),
+    alpha = 0.7,
+    size = 1.8
+  ) +
+  scale_color_manual(
+    values = c(
+      "Higher old-age share" = "#D95F02",
+      "Lower old-age share" = "#2A6F6F"
+    )
+  ) +
+  labs(
+    title = "Ternary Plot of Age Structure by Old-age Share",
+    subtitle = "Subzones are grouped by whether old-age share is above or below the median",
+    T = "Young share",
+    L = "Active share",
+    R = "Old share",
+    color = "Ageing group"
+  ) +
+  theme_rgbw() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    legend.position = "bottom"
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+old_share_median <- median(agpop_share$OLD_SHARE, na.rm = TRUE)
+
+agpop_share <- agpop_share %>%
+  mutate(
+    Ageing_Group = if_else(
+      OLD_SHARE >= old_share_median,
+      "Higher old-age share",
+      "Lower old-age share"
+    )
+  )
+
+ggtern(
+  data = agpop_share,
+  aes(x = YOUNG_SHARE,
+      y = ACTIVE_SHARE,
+      z = OLD_SHARE)
+) +
+  geom_point(
+    aes(color = Ageing_Group),
+    alpha = 0.7,
+    size = 1.8
+  ) +
+  scale_color_manual(
+    values = c(
+      "Higher old-age share" = "#D95F02",
+      "Lower old-age share" = "#2A6F6F"
+    )
+  ) +
+  labs(
+    title = "Ternary Plot of Age Structure by Old-age Share",
+    subtitle = "Subzones are grouped by whether old-age share is above or below the median",
+    T = "Young share",
+    L = "Active share",
+    R = "Old share",
+    color = "Ageing group"
+  ) +
+  theme_rgbw() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 9),
+    legend.position = "bottom"
+  )
+```
+
+:::
+
+This extension makes the chart more analytical. The ternary plot no longer only shows many points inside a triangle; it also helps identify which subzones are more ageing-leaning compared with the overall median.
+
+## Plotting an interactive ternary diagram
+
+The interactive ternary plot is created using `plot_ly()`. This allows the user to hover over each point and inspect the area name, subzone, total population and age-group shares.
+
+### Creating helper functions
+
+The helper functions below are used to format the plot annotation and ternary axes.
+
+```{r}
+label <- function(txt) {
+  list(
+    text = txt,
+    x = 0.1,
+    y = 1,
+    ax = 0,
+    ay = 0,
+    xref = "paper",
+    yref = "paper",
+    align = "center",
+    font = list(
+      family = "serif",
+      size = 15,
+      color = "white"
+    ),
+    bgcolor = "#2A6F6F",
+    bordercolor = "#1F1F1F",
+    borderwidth = 2
+  )
+}
+
+axis <- function(txt) {
+  list(
+    title = txt,
+    tickformat = ".0%",
+    tickfont = list(size = 10)
+  )
+}
+
+ternaryAxes <- list(
+  aaxis = axis("Young"),
+  baxis = axis("Active"),
+  caxis = axis("Old")
+)
+```
+
+### Interactive ternary plot
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r}
+plot_ly(
+  agpop_share,
+  a = ~YOUNG_SHARE,
+  b = ~ACTIVE_SHARE,
+  c = ~OLD_SHARE,
+  type = "scatterternary",
+  mode = "markers",
+  color = ~Ageing_Group,
+  colors = c("#2A6F6F", "#D95F02"),
+  marker = list(
+    size = 7,
+    opacity = 0.75,
+    line = list(
+      color = "#1F1F1F",
+      width = 0.5
+    )
+  ),
+  text = ~paste(
+    "Planning Area:", PA,
+    "<br>Subzone:", SZ,
+    "<br>Total population:", TOTAL,
+    "<br>Young share:", scales::percent(YOUNG_SHARE, accuracy = 0.1),
+    "<br>Active share:", scales::percent(ACTIVE_SHARE, accuracy = 0.1),
+    "<br>Old share:", scales::percent(OLD_SHARE, accuracy = 0.1),
+    "<br>Group:", Ageing_Group
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Interactive Ternary Plot of Singapore Population Structure, 2018",
+    annotations = label("Ternary Markers"),
+    ternary = ternaryAxes,
+    legend = list(
+      orientation = "h",
+      x = 0.15,
+      y = -0.1
+    )
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+plot_ly(
+  agpop_share,
+  a = ~YOUNG_SHARE,
+  b = ~ACTIVE_SHARE,
+  c = ~OLD_SHARE,
+  type = "scatterternary",
+  mode = "markers",
+  color = ~Ageing_Group,
+  colors = c("#2A6F6F", "#D95F02"),
+  marker = list(
+    size = 7,
+    opacity = 0.75,
+    line = list(
+      color = "#1F1F1F",
+      width = 0.5
+    )
+  ),
+  text = ~paste(
+    "Planning Area:", PA,
+    "<br>Subzone:", SZ,
+    "<br>Total population:", TOTAL,
+    "<br>Young share:", scales::percent(YOUNG_SHARE, accuracy = 0.1),
+    "<br>Active share:", scales::percent(ACTIVE_SHARE, accuracy = 0.1),
+    "<br>Old share:", scales::percent(OLD_SHARE, accuracy = 0.1),
+    "<br>Group:", Ageing_Group
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Interactive Ternary Plot of Singapore Population Structure, 2018",
+    annotations = label("Ternary Markers"),
+    ternary = ternaryAxes,
+    legend = list(
+      orientation = "h",
+      x = 0.15,
+      y = -0.1
+    )
+  )
+```
+
+:::
+
+The interactive version is useful because the ternary plot may contain many overlapping points. Hover information allows the chart to remain clean while still showing detailed information for each subzone.
+
+## My Extension: Top ageing subzones table
+
+To support the ternary plot, we can extract the subzones with the highest old-age share. This gives a simple table for identifying which areas may require closer attention in ageing-related planning.
+
+```{r}
+top_ageing_subzones <- agpop_share %>%
+  arrange(desc(OLD_SHARE)) %>%
+  select(
+    Year,
+    PA,
+    SZ,
+    TOTAL,
+    YOUNG_SHARE,
+    ACTIVE_SHARE,
+    OLD_SHARE
+  ) %>%
+  slice_head(n = 10)
+```
+
+```{r}
+top_ageing_subzones %>%
+  mutate(
+    YOUNG_SHARE = scales::percent(YOUNG_SHARE, accuracy = 0.1),
+    ACTIVE_SHARE = scales::percent(ACTIVE_SHARE, accuracy = 0.1),
+    OLD_SHARE = scales::percent(OLD_SHARE, accuracy = 0.1)
+  ) %>%
+  knitr::kable(format = "html")
+```
+
+The table gives a direct ranking, while the ternary plot gives the wider compositional context. Used together, they make the analysis more readable and less dependent on a single chart.
+
+## Reference
+
+- ggtern package
+- Plotly R documentation
+- tidyverse documentation
+- Singapore resident pop  ulation dataset
