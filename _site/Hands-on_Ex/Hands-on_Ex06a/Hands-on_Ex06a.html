@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Hands-on_Ex06a – ISS608-VAA</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-3f2251fd1662f09b24a40c8776ba697e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link href="../../site_libs/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
+<script src="../../site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="../../site_libs/plotly-binding-4.12.0/plotly.js"></script>
+<script src="../../site_libs/typedarray-0.1/typedarray.min.js"></script>
+<script src="../../site_libs/jquery-3.5.1/jquery.min.js"></script>
+<link href="../../site_libs/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet">
+<script src="../../site_libs/crosstalk-1.2.2/js/crosstalk.min.js"></script>
+<link href="../../site_libs/plotly-htmlwidgets-css-2.25.2/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="../../site_libs/plotly-main-2.25.2/plotly-latest.min.js"></script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">ISS608-VAA</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-hands-on-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Hands-on Exercise</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">    
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_EX01/Hands-on_ex01.html">
+ <span class="dropdown-text">Hands-on Exercise 1</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex02/Hands-on_ex02.html">
+ <span class="dropdown-text">Hands-on Exercise 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html">
+ <span class="dropdown-text">Hands-on Exercise 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex04/Hands-on_ex04.html">
+ <span class="dropdown-text">Hands-on Exercise 4</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05a/Hands-on_Ex05a.html">
+ <span class="dropdown-text">Hands-on Exercise 5a</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05b/Hands-on_Ex05b.html">
+ <span class="dropdown-text">Hands-on Exercise 5b</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05c/Hands-on_Ex05c.html">
+ <span class="dropdown-text">Hands-on Exercise 5c</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex05d/Hands-on_Ex05d.html">
+ <span class="dropdown-text">Hands-on Exercise 5d</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex06a/Hands-on_Ex06a.html">
+ <span class="dropdown-text">Hands-on Exercise 6a</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex06b/Hands-on_Ex06b.html">
+ <span class="dropdown-text">Hands-on Exercise 6b</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Hands-on_Ex/Hands-on_Ex06c/Hands-on_Ex06c.html">
+ <span class="dropdown-text">Hands-on Exercise 6c</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-take-home-exercise" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Take-home Exercise</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-exercise">    
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_EX01/Executive_Summary.html">
+ <span class="dropdown-text">Take-home Exercise 1 - Executive Summary</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_EX01/Technical_Report.html">
+ <span class="dropdown-text">Take-home Exercise 1 - Technical Report</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_EX02/Executive_Summary.html">
+ <span class="dropdown-text">Take-home Exercise 2 - Executive Summary</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_EX02/Technical_Report.html">
+ <span class="dropdown-text">Take-home Exercise 2 - Technical Report</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_EX03/Executive_Summary.html">
+ <span class="dropdown-text">Take-home Exercise 3 - Executive Summary</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_EX03/Technical_Report.html">
+ <span class="dropdown-text">Take-home Exercise 3 - Technical Report</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#creating-ternary-plot-with-r" id="toc-creating-ternary-plot-with-r" class="nav-link active" data-scroll-target="#creating-ternary-plot-with-r"><span class="header-section-number">1</span> Creating Ternary Plot with R</a>
+  <ul class="collapse">
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview"><span class="header-section-number">1.1</span> Overview</a></li>
+  <li><a href="#installing-and-launching-r-packages" id="toc-installing-and-launching-r-packages" class="nav-link" data-scroll-target="#installing-and-launching-r-packages"><span class="header-section-number">1.2</span> Installing and launching R packages</a></li>
+  <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation"><span class="header-section-number">1.3</span> Data Preparation</a>
+  <ul class="collapse">
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data"><span class="header-section-number">1.3.1</span> The data</a></li>
+  <li><a href="#importing-data" id="toc-importing-data" class="nav-link" data-scroll-target="#importing-data"><span class="header-section-number">1.3.2</span> Importing Data</a></li>
+  <li><a href="#preparing-the-data" id="toc-preparing-the-data" class="nav-link" data-scroll-target="#preparing-the-data"><span class="header-section-number">1.3.3</span> Preparing the Data</a></li>
+  <li><a href="#my-extension-converting-counts-into-percentage-shares" id="toc-my-extension-converting-counts-into-percentage-shares" class="nav-link" data-scroll-target="#my-extension-converting-counts-into-percentage-shares"><span class="header-section-number">1.3.4</span> My Extension: Converting counts into percentage shares</a></li>
+  </ul></li>
+  <li><a href="#plotting-ternary-diagram-with-r" id="toc-plotting-ternary-diagram-with-r" class="nav-link" data-scroll-target="#plotting-ternary-diagram-with-r"><span class="header-section-number">1.4</span> Plotting Ternary Diagram with R</a>
+  <ul class="collapse">
+  <li><a href="#plotting-a-static-ternary-diagram" id="toc-plotting-a-static-ternary-diagram" class="nav-link" data-scroll-target="#plotting-a-static-ternary-diagram"><span class="header-section-number">1.4.1</span> Plotting a static ternary diagram</a></li>
+  <li><a href="#improving-the-ternary-plot" id="toc-improving-the-ternary-plot" class="nav-link" data-scroll-target="#improving-the-ternary-plot"><span class="header-section-number">1.4.2</span> Improving the ternary plot</a></li>
+  <li><a href="#static-ternary-plot-with-population-size" id="toc-static-ternary-plot-with-population-size" class="nav-link" data-scroll-target="#static-ternary-plot-with-population-size"><span class="header-section-number">1.4.3</span> Static ternary plot with population size</a></li>
+  <li><a href="#my-extension-highlighting-ageing-leaning-subzones" id="toc-my-extension-highlighting-ageing-leaning-subzones" class="nav-link" data-scroll-target="#my-extension-highlighting-ageing-leaning-subzones"><span class="header-section-number">1.4.4</span> My Extension: Highlighting ageing-leaning subzones</a></li>
+  </ul></li>
+  <li><a href="#plotting-an-interactive-ternary-diagram" id="toc-plotting-an-interactive-ternary-diagram" class="nav-link" data-scroll-target="#plotting-an-interactive-ternary-diagram"><span class="header-section-number">1.5</span> Plotting an interactive ternary diagram</a>
+  <ul class="collapse">
+  <li><a href="#creating-helper-functions" id="toc-creating-helper-functions" class="nav-link" data-scroll-target="#creating-helper-functions"><span class="header-section-number">1.5.1</span> Creating helper functions</a></li>
+  <li><a href="#interactive-ternary-plot" id="toc-interactive-ternary-plot" class="nav-link" data-scroll-target="#interactive-ternary-plot"><span class="header-section-number">1.5.2</span> Interactive ternary plot</a></li>
+  </ul></li>
+  <li><a href="#my-extension-top-ageing-subzones-table" id="toc-my-extension-top-ageing-subzones-table" class="nav-link" data-scroll-target="#my-extension-top-ageing-subzones-table"><span class="header-section-number">1.6</span> My Extension: Top ageing subzones table</a></li>
+  <li><a href="#reference" id="toc-reference" class="nav-link" data-scroll-target="#reference"><span class="header-section-number">1.7</span> Reference</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Hands-on_Ex06a</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="creating-ternary-plot-with-r" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Creating Ternary Plot with R</h1>
+<section id="overview" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">1.1</span> Overview</h2>
+<p>A ternary plot is used to visualise data made up of three parts. The three components are placed inside a triangle, and each point represents how the total is divided among the three components.</p>
+<p>This type of chart is useful when the main question is not about absolute size, but about <strong>composition</strong>. For example, a population area can be described by the proportion of young residents, economically active residents and old residents.</p>
+<p>In this hands-on exercise, ternary plots are used to study the population structure of Singapore. The focus is on comparing the balance between three age groups across planning areas and subzones.</p>
+<p>By the end of this exercise, we should be able to:</p>
+<ul>
+<li>prepare population data for ternary plotting;</li>
+<li>derive young, active and old population measures;</li>
+<li>create a static ternary plot using <code>ggtern</code>;</li>
+<li>improve the ternary plot with labels, colour and theme settings;</li>
+<li>create an interactive ternary plot using <code>plotly</code>;</li>
+<li>interpret population structure from a compositional point of view.</li>
+</ul>
+</section>
+<section id="installing-and-launching-r-packages" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="installing-and-launching-r-packages"><span class="header-section-number">1.2</span> Installing and launching R packages</h2>
+<p>For this exercise, three main groups of packages are required.</p>
+<p><code>ggtern</code> is used to create static ternary diagrams. <code>plotly</code> is used to build interactive ternary plots. <code>tidyverse</code> is used for importing, cleaning and reshaping the data.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(plotly, ggtern, tidyverse, knitr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>also installing the dependencies 'DEoptimR', 'tensorA', 'robustbase', 'bayesm', 'compositions', 'latex2exp', 'proto', 'hexbin'</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+The downloaded binary packages are in
+    /var/folders/54/lskjc21j5kngz8h14l28h44c0000gn/T//RtmpCdSEfi/downloaded_packages</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+ggtern installed</code></pre>
+</div>
+</div>
+</section>
+<section id="data-preparation" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="data-preparation"><span class="header-section-number">1.3</span> Data Preparation</h2>
+<section id="the-data" class="level3" data-number="1.3.1">
+<h3 data-number="1.3.1" class="anchored" data-anchor-id="the-data"><span class="header-section-number">1.3.1</span> The data</h3>
+<p>The dataset used in this hands-on exercise is <code>respopagsex2000to2018_tidy.csv</code>. It contains Singapore resident population data by planning area, subzone, age group, sex and dwelling type.</p>
+<p>For this exercise, the key variables are:</p>
+<ul>
+<li><code>Year</code>: the year of observation;</li>
+<li><code>PA</code>: planning area;</li>
+<li><code>SZ</code>: subzone;</li>
+<li><code>AG</code>: age group;</li>
+<li><code>Population</code>: number of residents.</li>
+</ul>
+<p>The goal is to aggregate age groups into three broad categories:</p>
+<ul>
+<li><code>YOUNG</code>: younger population;</li>
+<li><code>ACTIVE</code>: economically active age group;</li>
+<li><code>OLD</code>: older population.</li>
+</ul>
+</section>
+<section id="importing-data" class="level3" data-number="1.3.2">
+<h3 data-number="1.3.2" class="anchored" data-anchor-id="importing-data"><span class="header-section-number">1.3.2</span> Importing Data</h3>
+<p>To reduce path errors during rendering, the code below checks several possible file locations. This is useful because your data file may be stored inside the current exercise folder or inside the common <code>data</code> folder.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>pop_path <span class="ot">&lt;-</span> <span class="fu">case_when</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.exists</span>(<span class="st">"respopagsex2000to2018_tidy.csv"</span>) <span class="sc">~</span> <span class="st">"respopagsex2000to2018_tidy.csv"</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.exists</span>(<span class="st">"data/respopagsex2000to2018_tidy.csv"</span>) <span class="sc">~</span> <span class="st">"data/respopagsex2000to2018_tidy.csv"</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.exists</span>(<span class="st">"../data/respopagsex2000to2018_tidy.csv"</span>) <span class="sc">~</span> <span class="st">"../data/respopagsex2000to2018_tidy.csv"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.exists</span>(<span class="st">"../../data/respopagsex2000to2018_tidy.csv"</span>) <span class="sc">~</span> <span class="st">"../../data/respopagsex2000to2018_tidy.csv"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">is.na</span>(pop_path)) {</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"respopagsex2000to2018_tidy.csv cannot be found. Please place it in this folder or in the data folder."</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>pop_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(pop_path)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 108126 Columns: 5
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (3): PA, SZ, AG
+dbl (2): Year, Population
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(pop_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 108,126
+Columns: 5
+$ PA         &lt;chr&gt; "Ang Mo Kio", "Ang Mo Kio", "Ang Mo Kio", "Ang Mo Kio", "An…
+$ SZ         &lt;chr&gt; "Ang Mo Kio Town Centre", "Ang Mo Kio Town Centre", "Ang Mo…
+$ AG         &lt;chr&gt; "AGE0-4", "AGE0-4", "AGE0-4", "AGE0-4", "AGE0-4", "AGE0-4",…
+$ Year       &lt;dbl&gt; 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2011, 2012,…
+$ Population &lt;dbl&gt; 290, 270, 260, 250, 260, 250, 200, 180, 290, 290, 270, 300,…</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(pop_data), <span class="at">format =</span> <span class="st">"html"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">PA</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SZ</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">AG</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Year</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Population</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: left;">AGE0-4</td>
+<td style="text-align: right;">2011</td>
+<td style="text-align: right;">290</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: left;">AGE0-4</td>
+<td style="text-align: right;">2012</td>
+<td style="text-align: right;">270</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: left;">AGE0-4</td>
+<td style="text-align: right;">2013</td>
+<td style="text-align: right;">260</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: left;">AGE0-4</td>
+<td style="text-align: right;">2014</td>
+<td style="text-align: right;">250</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: left;">AGE0-4</td>
+<td style="text-align: right;">2015</td>
+<td style="text-align: right;">260</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: left;">AGE0-4</td>
+<td style="text-align: right;">2016</td>
+<td style="text-align: right;">250</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The imported dataset is in tidy format, meaning each row represents a specific combination of year, area, subzone, age group and other demographic attributes.</p>
+</section>
+<section id="preparing-the-data" class="level3" data-number="1.3.3">
+<h3 data-number="1.3.3" class="anchored" data-anchor-id="preparing-the-data"><span class="header-section-number">1.3.3</span> Preparing the Data</h3>
+<p>Before building the ternary plot, the data must be reshaped. Each age group is originally stored as a category under <code>AG</code>. To calculate broad age groups, we first spread the age groups into separate columns.</p>
+<p>The three derived measures are:</p>
+<ul>
+<li><code>YOUNG</code>: sum of younger age groups;</li>
+<li><code>ACTIVE</code>: sum of working-age groups;</li>
+<li><code>OLD</code>: sum of older age groups.</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>agpop_mutated <span class="ot">&lt;-</span> pop_data <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Year</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.character</span>(Year)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">spread</span>(AG, Population) <span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">YOUNG =</span> <span class="fu">rowSums</span>(.[<span class="dv">4</span><span class="sc">:</span><span class="dv">8</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ACTIVE =</span> <span class="fu">rowSums</span>(.[<span class="dv">9</span><span class="sc">:</span><span class="dv">16</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">OLD =</span> <span class="fu">rowSums</span>(.[<span class="dv">17</span><span class="sc">:</span><span class="dv">21</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">TOTAL =</span> <span class="fu">rowSums</span>(.[<span class="dv">22</span><span class="sc">:</span><span class="dv">24</span>], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Year <span class="sc">==</span> <span class="dv">2018</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(TOTAL <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(agpop_mutated)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 234
+Columns: 25
+$ PA         &lt;chr&gt; "Ang Mo Kio", "Ang Mo Kio", "Ang Mo Kio", "Ang Mo Kio", "An…
+$ SZ         &lt;chr&gt; "Ang Mo Kio Town Centre", "Cheng San", "Chong Boon", "Kebun…
+$ Year       &lt;chr&gt; "2018", "2018", "2018", "2018", "2018", "2018", "2018", "20…
+$ `AGE0-4`   &lt;dbl&gt; 180, 1060, 900, 720, 220, 550, 260, 830, 160, 810, 350, 282…
+$ `AGE05-9`  &lt;dbl&gt; 270, 1080, 900, 850, 310, 630, 340, 930, 160, 1070, 460, 32…
+$ `AGE10-14` &lt;dbl&gt; 320, 1080, 1030, 1010, 380, 670, 430, 930, 220, 1300, 490, …
+$ `AGE15-19` &lt;dbl&gt; 300, 1260, 1220, 1120, 500, 780, 500, 860, 260, 1450, 400, …
+$ `AGE20-24` &lt;dbl&gt; 260, 1400, 1380, 1230, 550, 950, 640, 1020, 350, 1500, 330,…
+$ `AGE25-29` &lt;dbl&gt; 300, 1880, 1760, 1460, 500, 1080, 690, 1400, 340, 1590, 310…
+$ `AGE30-34` &lt;dbl&gt; 270, 1940, 1830, 1330, 300, 990, 440, 1350, 230, 1390, 310,…
+$ `AGE35-39` &lt;dbl&gt; 330, 2300, 1920, 1540, 290, 1100, 400, 1700, 250, 1770, 630…
+$ `AGE40-44` &lt;dbl&gt; 430, 2090, 1900, 1700, 420, 1140, 490, 1720, 260, 1860, 810…
+$ `AGE45-49` &lt;dbl&gt; 470, 2180, 1910, 1830, 550, 1230, 580, 1530, 320, 2000, 830…
+$ `AGE50-54` &lt;dbl&gt; 360, 2160, 2070, 1880, 550, 1350, 640, 1480, 300, 1980, 620…
+$ `AGE55-59` &lt;dbl&gt; 310, 2150, 2140, 1810, 560, 1420, 730, 1720, 360, 2010, 460…
+$ `AGE60-64` &lt;dbl&gt; 300, 2270, 2170, 1750, 450, 1290, 680, 1680, 350, 1980, 390…
+$ `AGE65-69` &lt;dbl&gt; 270, 2130, 2050, 1700, 410, 1150, 500, 1610, 250, 1790, 340…
+$ `AGE70-74` &lt;dbl&gt; 190, 1370, 1570, 1240, 290, 830, 280, 1190, 160, 1090, 220,…
+$ `AGE75-79` &lt;dbl&gt; 150, 980, 1170, 870, 220, 680, 210, 980, 100, 690, 110, 257…
+$ `AGE80-84` &lt;dbl&gt; 60, 560, 640, 540, 140, 360, 180, 560, 70, 390, 80, 1520, 2…
+$ AGE85over  &lt;dbl&gt; 60, 440, 530, 430, 140, 340, 130, 460, 60, 310, 100, 1350, …
+$ YOUNG      &lt;dbl&gt; 1330, 5880, 5430, 4930, 1960, 3580, 2170, 4570, 1150, 6130,…
+$ ACTIVE     &lt;dbl&gt; 2770, 16970, 15700, 13300, 3620, 9600, 4650, 12580, 2410, 1…
+$ OLD        &lt;dbl&gt; 730, 5480, 5960, 4780, 1200, 3360, 1300, 4800, 640, 4270, 8…
+$ TOTAL      &lt;dbl&gt; 4830, 28330, 27090, 23010, 6780, 16540, 8120, 21950, 4200, …</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(agpop_mutated), <span class="at">format =</span> <span class="st">"html"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">PA</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SZ</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Year</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE0-4</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE05-9</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE10-14</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE15-19</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE20-24</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE25-29</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE30-34</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE35-39</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE40-44</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE45-49</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE50-54</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE55-59</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE60-64</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE65-69</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE70-74</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE75-79</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE80-84</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">AGE85over</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">YOUNG</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ACTIVE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">OLD</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">TOTAL</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: left;">2018</td>
+<td style="text-align: right;">180</td>
+<td style="text-align: right;">270</td>
+<td style="text-align: right;">320</td>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">260</td>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">270</td>
+<td style="text-align: right;">330</td>
+<td style="text-align: right;">430</td>
+<td style="text-align: right;">470</td>
+<td style="text-align: right;">360</td>
+<td style="text-align: right;">310</td>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">270</td>
+<td style="text-align: right;">190</td>
+<td style="text-align: right;">150</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">1330</td>
+<td style="text-align: right;">2770</td>
+<td style="text-align: right;">730</td>
+<td style="text-align: right;">4830</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Cheng San</td>
+<td style="text-align: left;">2018</td>
+<td style="text-align: right;">1060</td>
+<td style="text-align: right;">1080</td>
+<td style="text-align: right;">1080</td>
+<td style="text-align: right;">1260</td>
+<td style="text-align: right;">1400</td>
+<td style="text-align: right;">1880</td>
+<td style="text-align: right;">1940</td>
+<td style="text-align: right;">2300</td>
+<td style="text-align: right;">2090</td>
+<td style="text-align: right;">2180</td>
+<td style="text-align: right;">2160</td>
+<td style="text-align: right;">2150</td>
+<td style="text-align: right;">2270</td>
+<td style="text-align: right;">2130</td>
+<td style="text-align: right;">1370</td>
+<td style="text-align: right;">980</td>
+<td style="text-align: right;">560</td>
+<td style="text-align: right;">440</td>
+<td style="text-align: right;">5880</td>
+<td style="text-align: right;">16970</td>
+<td style="text-align: right;">5480</td>
+<td style="text-align: right;">28330</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Chong Boon</td>
+<td style="text-align: left;">2018</td>
+<td style="text-align: right;">900</td>
+<td style="text-align: right;">900</td>
+<td style="text-align: right;">1030</td>
+<td style="text-align: right;">1220</td>
+<td style="text-align: right;">1380</td>
+<td style="text-align: right;">1760</td>
+<td style="text-align: right;">1830</td>
+<td style="text-align: right;">1920</td>
+<td style="text-align: right;">1900</td>
+<td style="text-align: right;">1910</td>
+<td style="text-align: right;">2070</td>
+<td style="text-align: right;">2140</td>
+<td style="text-align: right;">2170</td>
+<td style="text-align: right;">2050</td>
+<td style="text-align: right;">1570</td>
+<td style="text-align: right;">1170</td>
+<td style="text-align: right;">640</td>
+<td style="text-align: right;">530</td>
+<td style="text-align: right;">5430</td>
+<td style="text-align: right;">15700</td>
+<td style="text-align: right;">5960</td>
+<td style="text-align: right;">27090</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Kebun Bahru</td>
+<td style="text-align: left;">2018</td>
+<td style="text-align: right;">720</td>
+<td style="text-align: right;">850</td>
+<td style="text-align: right;">1010</td>
+<td style="text-align: right;">1120</td>
+<td style="text-align: right;">1230</td>
+<td style="text-align: right;">1460</td>
+<td style="text-align: right;">1330</td>
+<td style="text-align: right;">1540</td>
+<td style="text-align: right;">1700</td>
+<td style="text-align: right;">1830</td>
+<td style="text-align: right;">1880</td>
+<td style="text-align: right;">1810</td>
+<td style="text-align: right;">1750</td>
+<td style="text-align: right;">1700</td>
+<td style="text-align: right;">1240</td>
+<td style="text-align: right;">870</td>
+<td style="text-align: right;">540</td>
+<td style="text-align: right;">430</td>
+<td style="text-align: right;">4930</td>
+<td style="text-align: right;">13300</td>
+<td style="text-align: right;">4780</td>
+<td style="text-align: right;">23010</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Sembawang Hills</td>
+<td style="text-align: left;">2018</td>
+<td style="text-align: right;">220</td>
+<td style="text-align: right;">310</td>
+<td style="text-align: right;">380</td>
+<td style="text-align: right;">500</td>
+<td style="text-align: right;">550</td>
+<td style="text-align: right;">500</td>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">290</td>
+<td style="text-align: right;">420</td>
+<td style="text-align: right;">550</td>
+<td style="text-align: right;">550</td>
+<td style="text-align: right;">560</td>
+<td style="text-align: right;">450</td>
+<td style="text-align: right;">410</td>
+<td style="text-align: right;">290</td>
+<td style="text-align: right;">220</td>
+<td style="text-align: right;">140</td>
+<td style="text-align: right;">140</td>
+<td style="text-align: right;">1960</td>
+<td style="text-align: right;">3620</td>
+<td style="text-align: right;">1200</td>
+<td style="text-align: right;">6780</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Shangri-La</td>
+<td style="text-align: left;">2018</td>
+<td style="text-align: right;">550</td>
+<td style="text-align: right;">630</td>
+<td style="text-align: right;">670</td>
+<td style="text-align: right;">780</td>
+<td style="text-align: right;">950</td>
+<td style="text-align: right;">1080</td>
+<td style="text-align: right;">990</td>
+<td style="text-align: right;">1100</td>
+<td style="text-align: right;">1140</td>
+<td style="text-align: right;">1230</td>
+<td style="text-align: right;">1350</td>
+<td style="text-align: right;">1420</td>
+<td style="text-align: right;">1290</td>
+<td style="text-align: right;">1150</td>
+<td style="text-align: right;">830</td>
+<td style="text-align: right;">680</td>
+<td style="text-align: right;">360</td>
+<td style="text-align: right;">340</td>
+<td style="text-align: right;">3580</td>
+<td style="text-align: right;">9600</td>
+<td style="text-align: right;">3360</td>
+<td style="text-align: right;">16540</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The resulting dataset now contains the three variables needed for the ternary plot: <code>YOUNG</code>, <code>ACTIVE</code> and <code>OLD</code>.</p>
+</section>
+<section id="my-extension-converting-counts-into-percentage-shares" class="level3" data-number="1.3.4">
+<h3 data-number="1.3.4" class="anchored" data-anchor-id="my-extension-converting-counts-into-percentage-shares"><span class="header-section-number">1.3.4</span> My Extension: Converting counts into percentage shares</h3>
+<p>The ternary plot can use the raw counts directly, but percentage shares are easier to explain. Therefore, this small extension calculates the share of young, active and old residents for each area.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>agpop_share <span class="ot">&lt;-</span> agpop_mutated <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">YOUNG_SHARE =</span> YOUNG <span class="sc">/</span> TOTAL,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ACTIVE_SHARE =</span> ACTIVE <span class="sc">/</span> TOTAL,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">OLD_SHARE =</span> OLD <span class="sc">/</span> TOTAL</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>agpop_share <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Year, PA, SZ, YOUNG_SHARE, ACTIVE_SHARE, OLD_SHARE, TOTAL) <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">format =</span> <span class="st">"html"</span>, <span class="at">digits =</span> <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Year</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">PA</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SZ</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">YOUNG_SHARE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ACTIVE_SHARE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">OLD_SHARE</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">TOTAL</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Ang Mo Kio Town Centre</td>
+<td style="text-align: right;">0.275</td>
+<td style="text-align: right;">0.573</td>
+<td style="text-align: right;">0.151</td>
+<td style="text-align: right;">4830</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Cheng San</td>
+<td style="text-align: right;">0.208</td>
+<td style="text-align: right;">0.599</td>
+<td style="text-align: right;">0.193</td>
+<td style="text-align: right;">28330</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Chong Boon</td>
+<td style="text-align: right;">0.200</td>
+<td style="text-align: right;">0.580</td>
+<td style="text-align: right;">0.220</td>
+<td style="text-align: right;">27090</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Kebun Bahru</td>
+<td style="text-align: right;">0.214</td>
+<td style="text-align: right;">0.578</td>
+<td style="text-align: right;">0.208</td>
+<td style="text-align: right;">23010</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Sembawang Hills</td>
+<td style="text-align: right;">0.289</td>
+<td style="text-align: right;">0.534</td>
+<td style="text-align: right;">0.177</td>
+<td style="text-align: right;">6780</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Ang Mo Kio</td>
+<td style="text-align: left;">Shangri-La</td>
+<td style="text-align: right;">0.216</td>
+<td style="text-align: right;">0.580</td>
+<td style="text-align: right;">0.203</td>
+<td style="text-align: right;">16540</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>This extension makes the interpretation more direct. Instead of only saying that an area has many young or old residents, we can describe its population structure as a proportion of the total population.</p>
+</section>
+</section>
+<section id="plotting-ternary-diagram-with-r" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="plotting-ternary-diagram-with-r"><span class="header-section-number">1.4</span> Plotting Ternary Diagram with R</h2>
+<p>A ternary plot places three variables on a triangular coordinate system. Every point is positioned according to the balance of the three components.</p>
+<p>For this exercise:</p>
+<ul>
+<li>the bottom-left axis represents young population;</li>
+<li>the bottom-right axis represents active population;</li>
+<li>the top axis represents old population.</li>
+</ul>
+<p>A point closer to one corner means that the corresponding component has a higher share.</p>
+<section id="plotting-a-static-ternary-diagram" class="level3" data-number="1.4.1">
+<h3 data-number="1.4.1" class="anchored" data-anchor-id="plotting-a-static-ternary-diagram"><span class="header-section-number">1.4.1</span> Plotting a static ternary diagram</h3>
+<p>The simplest ternary plot can be created using <code>ggtern()</code>. In the code below, <code>YOUNG</code>, <code>ACTIVE</code> and <code>OLD</code> are mapped to the three ternary axes.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">The plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">The code chunk</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_mutated,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#2A6F6F"</span>,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.65</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1.6</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex06a_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_mutated,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#2A6F6F"</span>,</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.65</span>,</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1.6</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+<p>This first plot is useful as a basic check. It confirms whether the three age groups can be displayed in a ternary coordinate system.</p>
+<p>However, the chart still needs better labels and styling before it becomes suitable for interpretation.</p>
+</section>
+<section id="improving-the-ternary-plot" class="level3" data-number="1.4.2">
+<h3 data-number="1.4.2" class="anchored" data-anchor-id="improving-the-ternary-plot"><span class="header-section-number">1.4.2</span> Improving the ternary plot</h3>
+<p>The next version adds a clear title and applies a cleaner ternary theme. A muted teal colour is used to keep the visual style consistent with the previous exercises.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">The plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">The code chunk</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_mutated,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#2A6F6F"</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.65</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1.7</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Population Structure of Singapore, 2018"</span>,</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Ternary plot of young, active and old population groups"</span>,</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">T =</span> <span class="st">"Young"</span>,</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">L =</span> <span class="st">"Active"</span>,</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">R =</span> <span class="st">"Old"</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_rgbw</span>() <span class="sc">+</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>)</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Ignoring unknown labels:
+• T : "Young"
+• L : "Active"
+• R : "Old"</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex06a_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_mutated,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#2A6F6F"</span>,</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.65</span>,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1.7</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Population Structure of Singapore, 2018"</span>,</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Ternary plot of young, active and old population groups"</span>,</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">T =</span> <span class="st">"Young"</span>,</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">L =</span> <span class="st">"Active"</span>,</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">R =</span> <span class="st">"Old"</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_rgbw</span>() <span class="sc">+</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>)</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+<p>This plot shows how Singapore’s subzones differ in population composition. Areas with a relatively older population will move closer to the old corner, while areas with more working-age residents will be located closer to the active side.</p>
+</section>
+<section id="static-ternary-plot-with-population-size" class="level3" data-number="1.4.3">
+<h3 data-number="1.4.3" class="anchored" data-anchor-id="static-ternary-plot-with-population-size"><span class="header-section-number">1.4.3</span> Static ternary plot with population size</h3>
+<p>A useful extension is to map total population to point size. This allows the plot to show both composition and relative scale.</p>
+<p>The triangle still shows the age structure, while the point size gives a quick sense of which subzones have larger population bases.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">The plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">The code chunk</a></li></ul>
+<div class="tab-content">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_share,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG_SHARE,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE_SHARE,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD_SHARE)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">size =</span> TOTAL),</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#2A6F6F"</span>,</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.55</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_continuous</span>(</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Total population"</span>,</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">5</span>)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Population Composition and Size by Singapore Subzone, 2018"</span>,</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Point position shows age composition; point size shows total population"</span>,</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">T =</span> <span class="st">"Young share"</span>,</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">L =</span> <span class="st">"Active share"</span>,</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">R =</span> <span class="st">"Old share"</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_rgbw</span>() <span class="sc">+</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"right"</span></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Ignoring unknown labels:
+• T : "Young share"
+• L : "Active share"
+• R : "Old share"</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex06a_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_share,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG_SHARE,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE_SHARE,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD_SHARE)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">size =</span> TOTAL),</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#2A6F6F"</span>,</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.55</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_continuous</span>(</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Total population"</span>,</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">5</span>)</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Population Composition and Size by Singapore Subzone, 2018"</span>,</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Point position shows age composition; point size shows total population"</span>,</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">T =</span> <span class="st">"Young share"</span>,</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">L =</span> <span class="st">"Active share"</span>,</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">R =</span> <span class="st">"Old share"</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_rgbw</span>() <span class="sc">+</span></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"right"</span></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+<p>This version is slightly more informative because it avoids treating every subzone as equally large. A small subzone and a large subzone may have similar composition, but they matter differently when interpreted from a planning perspective.</p>
+</section>
+<section id="my-extension-highlighting-ageing-leaning-subzones" class="level3" data-number="1.4.4">
+<h3 data-number="1.4.4" class="anchored" data-anchor-id="my-extension-highlighting-ageing-leaning-subzones"><span class="header-section-number">1.4.4</span> My Extension: Highlighting ageing-leaning subzones</h3>
+<p>To add more analytical value, we can classify subzones by whether their old population share is above the median. This does not overcomplicate the analysis, but it makes the ternary plot easier to interpret.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>old_share_median <span class="ot">&lt;-</span> <span class="fu">median</span>(agpop_share<span class="sc">$</span>OLD_SHARE, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>agpop_share <span class="ot">&lt;-</span> agpop_share <span class="sc">%&gt;%</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ageing_Group =</span> <span class="fu">if_else</span>(</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>      OLD_SHARE <span class="sc">&gt;=</span> old_share_median,</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Higher old-age share"</span>,</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Lower old-age share"</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">The plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">The code chunk</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_share,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG_SHARE,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE_SHARE,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD_SHARE)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> Ageing_Group),</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span>,</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1.8</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Higher old-age share"</span> <span class="ot">=</span> <span class="st">"#D95F02"</span>,</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Lower old-age share"</span> <span class="ot">=</span> <span class="st">"#2A6F6F"</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Ternary Plot of Age Structure by Old-age Share"</span>,</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Subzones are grouped by whether old-age share is above or below the median"</span>,</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">T =</span> <span class="st">"Young share"</span>,</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">L =</span> <span class="st">"Active share"</span>,</span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">R =</span> <span class="st">"Old share"</span>,</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Ageing group"</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_rgbw</span>() <span class="sc">+</span></span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"bottom"</span></span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Ignoring unknown labels:
+• T : "Young share"
+• L : "Active share"
+• R : "Old share"</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex06a_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>old_share_median <span class="ot">&lt;-</span> <span class="fu">median</span>(agpop_share<span class="sc">$</span>OLD_SHARE, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>agpop_share <span class="ot">&lt;-</span> agpop_share <span class="sc">%&gt;%</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ageing_Group =</span> <span class="fu">if_else</span>(</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>      OLD_SHARE <span class="sc">&gt;=</span> old_share_median,</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Higher old-age share"</span>,</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Lower old-age share"</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggtern</span>(</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> agpop_share,</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> YOUNG_SHARE,</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> ACTIVE_SHARE,</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">z =</span> OLD_SHARE)</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> Ageing_Group),</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span>,</span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">1.8</span></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Higher old-age share"</span> <span class="ot">=</span> <span class="st">"#D95F02"</span>,</span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Lower old-age share"</span> <span class="ot">=</span> <span class="st">"#2A6F6F"</span></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Ternary Plot of Age Structure by Old-age Share"</span>,</span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Subzones are grouped by whether old-age share is above or below the median"</span>,</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">T =</span> <span class="st">"Young share"</span>,</span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">L =</span> <span class="st">"Active share"</span>,</span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">R =</span> <span class="st">"Old share"</span>,</span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Ageing group"</span></span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_rgbw</span>() <span class="sc">+</span></span>
+<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>),</span>
+<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"bottom"</span></span>
+<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+<p>This extension makes the chart more analytical. The ternary plot no longer only shows many points inside a triangle; it also helps identify which subzones are more ageing-leaning compared with the overall median.</p>
+</section>
+</section>
+<section id="plotting-an-interactive-ternary-diagram" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="plotting-an-interactive-ternary-diagram"><span class="header-section-number">1.5</span> Plotting an interactive ternary diagram</h2>
+<p>The interactive ternary plot is created using <code>plot_ly()</code>. This allows the user to hover over each point and inspect the area name, subzone, total population and age-group shares.</p>
+<section id="creating-helper-functions" class="level3" data-number="1.5.1">
+<h3 data-number="1.5.1" class="anchored" data-anchor-id="creating-helper-functions"><span class="header-section-number">1.5.1</span> Creating helper functions</h3>
+<p>The helper functions below are used to format the plot annotation and ternary axes.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>label <span class="ot">&lt;-</span> <span class="cf">function</span>(txt) {</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">text =</span> txt,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fl">0.1</span>,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="dv">1</span>,</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ax =</span> <span class="dv">0</span>,</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ay =</span> <span class="dv">0</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">xref =</span> <span class="st">"paper"</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">yref =</span> <span class="st">"paper"</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="st">"center"</span>,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">font =</span> <span class="fu">list</span>(</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> <span class="st">"serif"</span>,</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="dv">15</span>,</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="st">"white"</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">bgcolor =</span> <span class="st">"#2A6F6F"</span>,</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">bordercolor =</span> <span class="st">"#1F1F1F"</span>,</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">borderwidth =</span> <span class="dv">2</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>axis <span class="ot">&lt;-</span> <span class="cf">function</span>(txt) {</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> txt,</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">tickformat =</span> <span class="st">".0%"</span>,</span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">tickfont =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">10</span>)</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>ternaryAxes <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">aaxis =</span> <span class="fu">axis</span>(<span class="st">"Young"</span>),</span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">baxis =</span> <span class="fu">axis</span>(<span class="st">"Active"</span>),</span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">caxis =</span> <span class="fu">axis</span>(<span class="st">"Old"</span>)</span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="interactive-ternary-plot" class="level3" data-number="1.5.2">
+<h3 data-number="1.5.2" class="anchored" data-anchor-id="interactive-ternary-plot"><span class="header-section-number">1.5.2</span> Interactive ternary plot</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true" href="">The plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false" href="">The code chunk</a></li></ul>
+<div class="tab-content">
+<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  agpop_share,</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">a =</span> <span class="sc">~</span>YOUNG_SHARE,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">b =</span> <span class="sc">~</span>ACTIVE_SHARE,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">c =</span> <span class="sc">~</span>OLD_SHARE,</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"scatterternary"</span>,</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">mode =</span> <span class="st">"markers"</span>,</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">color =</span> <span class="sc">~</span>Ageing_Group,</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">"#2A6F6F"</span>, <span class="st">"#D95F02"</span>),</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">marker =</span> <span class="fu">list</span>(</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">7</span>,</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">opacity =</span> <span class="fl">0.75</span>,</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">line =</span> <span class="fu">list</span>(</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="st">"#1F1F1F"</span>,</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">width =</span> <span class="fl">0.5</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">text =</span> <span class="sc">~</span><span class="fu">paste</span>(</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Planning Area:"</span>, PA,</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Subzone:"</span>, SZ,</span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Total population:"</span>, TOTAL,</span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Young share:"</span>, scales<span class="sc">::</span><span class="fu">percent</span>(YOUNG_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Active share:"</span>, scales<span class="sc">::</span><span class="fu">percent</span>(ACTIVE_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Old share:"</span>, scales<span class="sc">::</span><span class="fu">percent</span>(OLD_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Group:"</span>, Ageing_Group</span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">hoverinfo =</span> <span class="st">"text"</span></span>
+<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb29-29"><a href="#cb29-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(</span>
+<span id="cb29-30"><a href="#cb29-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Interactive Ternary Plot of Singapore Population Structure, 2018"</span>,</span>
+<span id="cb29-31"><a href="#cb29-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">annotations =</span> <span class="fu">label</span>(<span class="st">"Ternary Markers"</span>),</span>
+<span id="cb29-32"><a href="#cb29-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">ternary =</span> ternaryAxes,</span>
+<span id="cb29-33"><a href="#cb29-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend =</span> <span class="fu">list</span>(</span>
+<span id="cb29-34"><a href="#cb29-34" aria-hidden="true" tabindex="-1"></a>      <span class="at">orientation =</span> <span class="st">"h"</span>,</span>
+<span id="cb29-35"><a href="#cb29-35" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="fl">0.15</span>,</span>
+<span id="cb29-36"><a href="#cb29-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="sc">-</span><span class="fl">0.1</span></span>
+<span id="cb29-37"><a href="#cb29-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb29-38"><a href="#cb29-38" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="plotly html-widget html-fill-item" id="htmlwidget-6c1f8e6e1d1ed4e2b7bf" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-6c1f8e6e1d1ed4e2b7bf">{"x":{"visdat":{"508a4e8cee41":["function () ","plotlyVisDat"]},"cur_data":"508a4e8cee41","attrs":{"508a4e8cee41":{"a":{},"b":{},"c":{},"mode":"markers","marker":{"size":7,"opacity":0.75,"line":{"color":"#1F1F1F","width":0.5}},"text":{},"hoverinfo":"text","color":{},"colors":["#2A6F6F","#D95F02"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatterternary"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"title":"Interactive Ternary Plot of Singapore Population Structure, 2018","annotations":[{"text":"Ternary Markers","x":0.10000000000000001,"y":1,"ax":0,"ay":0,"xref":"paper","yref":"paper","align":"center","font":{"family":"serif","size":15,"color":"white"},"bgcolor":"#2A6F6F","bordercolor":"#1F1F1F","borderwidth":2},{"text":"Ternary Markers","x":0.10000000000000001,"y":1,"ax":0,"ay":0,"xref":"paper","yref":"paper","align":"center","font":{"family":"serif","size":15,"color":"white"},"bgcolor":"#2A6F6F","bordercolor":"#1F1F1F","borderwidth":2},{"text":"Ternary Markers","x":0.10000000000000001,"y":1,"ax":0,"ay":0,"xref":"paper","yref":"paper","align":"center","font":{"family":"serif","size":15,"color":"white"},"bgcolor":"#2A6F6F","bordercolor":"#1F1F1F","borderwidth":2}],"ternary":{"aaxis":{"title":"Young","tickformat":".0%","tickfont":{"size":10}},"baxis":{"title":"Active","tickformat":".0%","tickfont":{"size":10}},"caxis":{"title":"Old","tickformat":".0%","tickfont":{"size":10}}},"legend":{"orientation":"h","x":0.14999999999999999,"y":-0.10000000000000001},"hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"a":[0.20755382986233675,0.20044296788482835,0.21425467188179054,0.28908554572271389,0.21644498186215236,0.26724137931034481,0.20820045558086561,0.27380952380952384,0.24539631705364293,0.23211908507805881,0.233153078202995,0.27179336659818021,0.24512607226410191,0.22594033722438392,0.21951219512195122,0.22554820744865994,0.24415848289874703,0.22230014025245443,0.19881500987491771,0.23214285714285715,0.26134585289514867,0.20476190476190476,0.20695652173913043,0.19072708113804004,0.25556471558120364,0.21603563474387527,0.19494869771112866,0.19795918367346937,0.21935987509758001,0.24122527121888959,0.27058823529411763,0.30781249999999999,0.2711864406779661,0.29307282415630553,0.27483751160631381,0.20000000000000001,0.22815884476534296,0.21409214092140921,0.22979797979797981,0.24444444444444444,0.23471074380165288,0.15116279069767441,0.21203796203796205,0.23508659397049392,0.2301389383683648,0.22322970639032816,0.22930132348414897,0.2580872011251758,0.16483516483516483,0.25077720207253884,0.22244017261671242,0.2477432296890672,0.21482098251457118,0.20915032679738563,0.16592427616926503,0.20868113522537562,0.17857142857142858,0.21953488372093025,0.21685508735868447,0.16666666666666666,0.25638297872340426,0.244823828550672,0.26763285024154587,0.22981366459627328,0.22805933250927071,0.28388746803069054,0.303886925795053,0.27397260273972601,0.22222222222222221,0.2608695652173913,0.11842105263157894,0.22283105022831051,0.167574931880109,0.034482758620689655,0,0.28000000000000003,0.18498659517426275,0.25883392226148411,0.22770817980840088,0.17789553368660105,0.21428571428571427,0.23042929292929293,0.24390243902439024,0.10000000000000001,0.16129032258064516,0.19406779661016949,0.24870466321243523,0.21768707482993196,0.16279069767441862,0.21201413427561838,0,0.18786127167630057,0.20000000000000001,0.21559633027522937,0.13402061855670103,0.27083333333333331,0.20795228628230616,0.22680965147453083,0.23522167487684728,0,0.23943661971830985,0.25874125874125875,0.26575342465753427,0.22573529411764706,0.23552894211576847,0.23212045169385195,0.20361445783132531,0.20238095238095238,0.22016651248843663,0.19787985865724381,0.24584103512014788,0.24965373961218837,0.19314205738278517,0.2482544608223429,0.25531914893617019,0.28132387706855794,0.2318840579710145],"b":[0.59901164842922694,0.57954964931709119,0.57800956106040857,0.53392330383480824,0.58041112454655386,0.57266009852216748,0.57312072892938493,0.57380952380952377,0.58366693354683752,0.58453346242284887,0.5686356073211315,0.56794834164954511,0.60280738237587728,0.58651102464332039,0.54268292682926833,0.60320222763661679,0.56891296986115814,0.55049088359046283,0.57011191573403552,0.5446428571428571,0.58685446009389675,0.57619047619047614,0.55130434782608695,0.56164383561643838,0.58285243198680958,0.58853006681514475,0.5588003157063931,0.5714285714285714,0.58938329430132708,0.58391831525207405,0.56696832579185519,0.52500000000000002,0.56548536209553157,0.55417406749555953,0.55060352831940573,0.6166666666666667,0.56750902527075808,0.5782520325203252,0.59469696969696972,0.56952380952380954,0.56033057851239665,0.59302325581395354,0.6071428571428571,0.58755612572161642,0.58567866049162809,0.62176165803108807,0.58971991381963684,0.5682137834036568,0.59340659340659341,0.57564766839378234,0.59905845429580229,0.59327983951855567,0.59922286983069661,0.58415032679738566,0.54899777282850781,0.58263772954924875,0.63095238095238093,0.58046511627906971,0.59506680369989717,0.66666666666666663,0.58510638297872342,0.54740283327279327,0.57874396135265704,0.59627329192546585,0.59394313967861556,0.52429667519181589,0.52650176678445226,0.53424657534246578,0.55555555555555558,0.58695652173913049,0.58552631578947367,0.58812785388127853,0.53269754768392374,0.7931034482758621,0,0.56000000000000005,0.579088471849866,0.56095406360424027,0.54974207811348563,0.56396669190007565,0.61904761904761907,0.57765151515151514,0.60060975609756095,0.69999999999999996,0.67741935483870963,0.57711864406779656,0.58549222797927458,0.60544217687074831,0.60465116279069764,0.60424028268551233,0.7142857142857143,0.5722543352601156,0.64000000000000001,0.54128440366972475,0.58762886597938147,0.55962643678160917,0.61391650099403583,0.57399463806970508,0.59852216748768472,0.83333333333333337,0.54929577464788737,0.56643356643356646,0.57534246575342463,0.54485294117647054,0.56387225548902198,0.60351317440401508,0.59036144578313254,0.55820105820105825,0.57076780758556889,0.59452296819787986,0.56192236598890943,0.58067867036011078,0.57872638208537441,0.59270752521334369,0.58510638297872342,0.55555555555555558,0.61594202898550721],"c":[0.19343452170843628,0.22000738279808046,0.20773576705780095,0.17699115044247787,0.20314389359129384,0.16009852216748768,0.21867881548974943,0.15238095238095239,0.17093674939951961,0.18334745249909234,0.19821131447587353,0.16025829175227474,0.15206654536002079,0.18754863813229572,0.23780487804878048,0.17124956491472329,0.18692854724009481,0.22720897615708274,0.23107307439104674,0.22321428571428573,0.15179968701095461,0.21904761904761905,0.2417391304347826,0.2476290832455216,0.16158285243198681,0.19543429844097995,0.24625098658247829,0.23061224489795917,0.19125683060109289,0.17485641352903639,0.16244343891402716,0.16718749999999999,0.1633281972265023,0.15275310834813499,0.1745589600742804,0.18333333333333332,0.20433212996389891,0.20765582655826559,0.1755050505050505,0.18603174603174602,0.20495867768595041,0.2558139534883721,0.18081918081918083,0.17735728030788966,0.18418240114000711,0.15500863557858377,0.18097876269621421,0.17369901547116737,0.24175824175824176,0.17357512953367876,0.17850137308748529,0.15897693079237712,0.18595614765473217,0.20669934640522875,0.28507795100222716,0.20868113522537562,0.19047619047619047,0.20000000000000001,0.1880781089414183,0.16666666666666666,0.15851063829787235,0.20777333817653468,0.15362318840579711,0.17391304347826086,0.17799752781211373,0.1918158567774936,0.16961130742049471,0.19178082191780821,0.22222222222222221,0.15217391304347827,0.29605263157894735,0.18904109589041096,0.29972752043596729,0.17241379310344829,1,0.16,0.2359249329758713,0.18021201413427562,0.22254974207811348,0.25813777441332325,0.16666666666666666,0.19191919191919191,0.15548780487804878,0.20000000000000001,0.16129032258064516,0.2288135593220339,0.16580310880829016,0.17687074829931973,0.23255813953488372,0.18374558303886926,0.2857142857142857,0.23988439306358381,0.16,0.24311926605504589,0.27835051546391754,0.16954022988505746,0.17813121272365806,0.19919571045576406,0.16625615763546797,0.16666666666666666,0.21126760563380281,0.17482517482517482,0.15890410958904111,0.22941176470588234,0.20059880239520958,0.16436637390213299,0.20602409638554217,0.23941798941798942,0.20906567992599445,0.20759717314487633,0.19223659889094269,0.16966759002770082,0.22813156053184044,0.15903801396431341,0.15957446808510639,0.16312056737588654,0.15217391304347827],"mode":"markers","marker":{"color":"rgba(42,111,111,1)","size":7,"opacity":0.75,"line":{"color":"#1F1F1F","width":0.5}},"text":["Planning Area: Ang Mo Kio <br>Subzone: Cheng San <br>Total population: 28330 <br>Young share: 20.8% <br>Active share: 59.9% <br>Old share: 19.3% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Chong Boon <br>Total population: 27090 <br>Young share: 20.0% <br>Active share: 58.0% <br>Old share: 22.0% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Kebun Bahru <br>Total population: 23010 <br>Young share: 21.4% <br>Active share: 57.8% <br>Old share: 20.8% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Sembawang Hills <br>Total population: 6780 <br>Young share: 28.9% <br>Active share: 53.4% <br>Old share: 17.7% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Shangri-La <br>Total population: 16540 <br>Young share: 21.6% <br>Active share: 58.0% <br>Old share: 20.3% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Tagore <br>Total population: 8120 <br>Young share: 26.7% <br>Active share: 57.3% <br>Old share: 16.0% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Townsville <br>Total population: 21950 <br>Young share: 20.8% <br>Active share: 57.3% <br>Old share: 21.9% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Yio Chu Kang East <br>Total population: 4200 <br>Young share: 27.4% <br>Active share: 57.4% <br>Old share: 15.2% <br>Group: Higher old-age share","Planning Area: Ang Mo Kio <br>Subzone: Yio Chu Kang West <br>Total population: 24980 <br>Young share: 24.5% <br>Active share: 58.4% <br>Old share: 17.1% <br>Group: Higher old-age share","Planning Area: Bedok <br>Subzone: Bedok North <br>Total population: 82630 <br>Young share: 23.2% <br>Active share: 58.5% <br>Old share: 18.3% <br>Group: Higher old-age share","Planning Area: Bedok <br>Subzone: Bedok South <br>Total population: 48080 <br>Young share: 23.3% <br>Active share: 56.9% <br>Old share: 19.8% <br>Group: Higher old-age share","Planning Area: Bedok <br>Subzone: Frankel <br>Total population: 34070 <br>Young share: 27.2% <br>Active share: 56.8% <br>Old share: 16.0% <br>Group: Higher old-age share","Planning Area: Bedok <br>Subzone: Kaki Bukit <br>Total population: 38470 <br>Young share: 24.5% <br>Active share: 60.3% <br>Old share: 15.2% <br>Group: Higher old-age share","Planning Area: Bedok <br>Subzone: Kembangan <br>Total population: 38550 <br>Young share: 22.6% <br>Active share: 58.7% <br>Old share: 18.8% <br>Group: Higher old-age share","Planning Area: Bedok <br>Subzone: Siglap <br>Total population: 6560 <br>Young share: 22.0% <br>Active share: 54.3% <br>Old share: 23.8% <br>Group: Higher old-age share","Planning Area: Bishan <br>Subzone: Bishan East <br>Total population: 28730 <br>Young share: 22.6% <br>Active share: 60.3% <br>Old share: 17.1% <br>Group: Higher old-age share","Planning Area: Bishan <br>Subzone: Upper Thomson <br>Total population: 29530 <br>Young share: 24.4% <br>Active share: 56.9% <br>Old share: 18.7% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Alexandra Hill <br>Total population: 14260 <br>Young share: 22.2% <br>Active share: 55.0% <br>Old share: 22.7% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Bukit Ho Swee <br>Total population: 15190 <br>Young share: 19.9% <br>Active share: 57.0% <br>Old share: 23.1% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Bukit Merah <br>Total population: 1120 <br>Young share: 23.2% <br>Active share: 54.5% <br>Old share: 22.3% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Depot Road <br>Total population: 6390 <br>Young share: 26.1% <br>Active share: 58.7% <br>Old share: 15.2% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Everton Park <br>Total population: 8400 <br>Young share: 20.5% <br>Active share: 57.6% <br>Old share: 21.9% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Henderson Hill <br>Total population: 11500 <br>Young share: 20.7% <br>Active share: 55.1% <br>Old share: 24.2% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Kampong Tiong Bahru <br>Total population: 9490 <br>Young share: 19.1% <br>Active share: 56.2% <br>Old share: 24.8% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Redhill <br>Total population: 12130 <br>Young share: 25.6% <br>Active share: 58.3% <br>Old share: 16.2% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Telok Blangah Drive <br>Total population: 17960 <br>Young share: 21.6% <br>Active share: 58.9% <br>Old share: 19.5% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Telok Blangah Rise <br>Total population: 12670 <br>Young share: 19.5% <br>Active share: 55.9% <br>Old share: 24.6% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Telok Blangah Way <br>Total population: 9800 <br>Young share: 19.8% <br>Active share: 57.1% <br>Old share: 23.1% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Tiong Bahru <br>Total population: 12810 <br>Young share: 21.9% <br>Active share: 58.9% <br>Old share: 19.1% <br>Group: Higher old-age share","Planning Area: Bukit Merah <br>Subzone: Tiong Bahru Station <br>Total population: 15670 <br>Young share: 24.1% <br>Active share: 58.4% <br>Old share: 17.5% <br>Group: Higher old-age share","Planning Area: Bukit Timah <br>Subzone: Anak Bukit <br>Total population: 22100 <br>Young share: 27.1% <br>Active share: 56.7% <br>Old share: 16.2% <br>Group: Higher old-age share","Planning Area: Bukit Timah <br>Subzone: Coronation Road <br>Total population: 6400 <br>Young share: 30.8% <br>Active share: 52.5% <br>Old share: 16.7% <br>Group: Higher old-age share","Planning Area: Bukit Timah <br>Subzone: Leedon Park <br>Total population: 6490 <br>Young share: 27.1% <br>Active share: 56.5% <br>Old share: 16.3% <br>Group: Higher old-age share","Planning Area: Bukit Timah <br>Subzone: Swiss Club <br>Total population: 5630 <br>Young share: 29.3% <br>Active share: 55.4% <br>Old share: 15.3% <br>Group: Higher old-age share","Planning Area: Bukit Timah <br>Subzone: Ulu Pandan <br>Total population: 10770 <br>Young share: 27.5% <br>Active share: 55.1% <br>Old share: 17.5% <br>Group: Higher old-age share","Planning Area: Changi <br>Subzone: Changi Point <br>Total population: 600 <br>Young share: 20.0% <br>Active share: 61.7% <br>Old share: 18.3% <br>Group: Higher old-age share","Planning Area: Clementi <br>Subzone: Clementi Central <br>Total population: 13850 <br>Young share: 22.8% <br>Active share: 56.8% <br>Old share: 20.4% <br>Group: Higher old-age share","Planning Area: Clementi <br>Subzone: Clementi North <br>Total population: 29520 <br>Young share: 21.4% <br>Active share: 57.8% <br>Old share: 20.8% <br>Group: Higher old-age share","Planning Area: Clementi <br>Subzone: Clementi West <br>Total population: 15840 <br>Young share: 23.0% <br>Active share: 59.5% <br>Old share: 17.6% <br>Group: Higher old-age share","Planning Area: Clementi <br>Subzone: Clementi Woods <br>Total population: 15750 <br>Young share: 24.4% <br>Active share: 57.0% <br>Old share: 18.6% <br>Group: Higher old-age share","Planning Area: Clementi <br>Subzone: Sunset Way <br>Total population: 6050 <br>Young share: 23.5% <br>Active share: 56.0% <br>Old share: 20.5% <br>Group: Higher old-age share","Planning Area: Downtown Core <br>Subzone: Bugis <br>Total population: 860 <br>Young share: 15.1% <br>Active share: 59.3% <br>Old share: 25.6% <br>Group: Higher old-age share","Planning Area: Geylang <br>Subzone: Aljunied <br>Total population: 40040 <br>Young share: 21.2% <br>Active share: 60.7% <br>Old share: 18.1% <br>Group: Higher old-age share","Planning Area: Geylang <br>Subzone: Geylang East <br>Total population: 31180 <br>Young share: 23.5% <br>Active share: 58.8% <br>Old share: 17.7% <br>Group: Higher old-age share","Planning Area: Geylang <br>Subzone: Macpherson <br>Total population: 28070 <br>Young share: 23.0% <br>Active share: 58.6% <br>Old share: 18.4% <br>Group: Higher old-age share","Planning Area: Hougang <br>Subzone: Hougang West <br>Total population: 46320 <br>Young share: 22.3% <br>Active share: 62.2% <br>Old share: 15.5% <br>Group: Higher old-age share","Planning Area: Hougang <br>Subzone: Lorong Ah Soo <br>Total population: 32490 <br>Young share: 22.9% <br>Active share: 59.0% <br>Old share: 18.1% <br>Group: Higher old-age share","Planning Area: Hougang <br>Subzone: Tai Seng <br>Total population: 14220 <br>Young share: 25.8% <br>Active share: 56.8% <br>Old share: 17.4% <br>Group: Higher old-age share","Planning Area: Jurong East <br>Subzone: Lakeside <br>Total population: 910 <br>Young share: 16.5% <br>Active share: 59.3% <br>Old share: 24.2% <br>Group: Higher old-age share","Planning Area: Jurong East <br>Subzone: Teban Gardens <br>Total population: 19300 <br>Young share: 25.1% <br>Active share: 57.6% <br>Old share: 17.4% <br>Group: Higher old-age share","Planning Area: Jurong East <br>Subzone: Yuhua East <br>Total population: 25490 <br>Young share: 22.2% <br>Active share: 59.9% <br>Old share: 17.9% <br>Group: Higher old-age share","Planning Area: Jurong East <br>Subzone: Yuhua West <br>Total population: 19940 <br>Young share: 24.8% <br>Active share: 59.3% <br>Old share: 15.9% <br>Group: Higher old-age share","Planning Area: Kallang <br>Subzone: Bendemeer <br>Total population: 36030 <br>Young share: 21.5% <br>Active share: 59.9% <br>Old share: 18.6% <br>Group: Higher old-age share","Planning Area: Kallang <br>Subzone: Boon Keng <br>Total population: 12240 <br>Young share: 20.9% <br>Active share: 58.4% <br>Old share: 20.7% <br>Group: Higher old-age share","Planning Area: Kallang <br>Subzone: Crawford <br>Total population: 8980 <br>Young share: 16.6% <br>Active share: 54.9% <br>Old share: 28.5% <br>Group: Higher old-age share","Planning Area: Kallang <br>Subzone: Geylang Bahru <br>Total population: 11980 <br>Young share: 20.9% <br>Active share: 58.3% <br>Old share: 20.9% <br>Group: Higher old-age share","Planning Area: Kallang <br>Subzone: Kampong Bugis <br>Total population: 840 <br>Young share: 17.9% <br>Active share: 63.1% <br>Old share: 19.0% <br>Group: Higher old-age share","Planning Area: Kallang <br>Subzone: Kampong Java <br>Total population: 10750 <br>Young share: 22.0% <br>Active share: 58.0% <br>Old share: 20.0% <br>Group: Higher old-age share","Planning Area: Kallang <br>Subzone: Lavender <br>Total population: 9730 <br>Young share: 21.7% <br>Active share: 59.5% <br>Old share: 18.8% <br>Group: Higher old-age share","Planning Area: Lim Chu Kang <br>Subzone: Lim Chu Kang <br>Total population: 60 <br>Young share: 16.7% <br>Active share: 66.7% <br>Old share: 16.7% <br>Group: Higher old-age share","Planning Area: Marine Parade <br>Subzone: Katong <br>Total population: 9400 <br>Young share: 25.6% <br>Active share: 58.5% <br>Old share: 15.9% <br>Group: Higher old-age share","Planning Area: Marine Parade <br>Subzone: Marine Parade <br>Total population: 27530 <br>Young share: 24.5% <br>Active share: 54.7% <br>Old share: 20.8% <br>Group: Higher old-age share","Planning Area: Marine Parade <br>Subzone: Mountbatten <br>Total population: 10350 <br>Young share: 26.8% <br>Active share: 57.9% <br>Old share: 15.4% <br>Group: Higher old-age share","Planning Area: Newton <br>Subzone: Orange Grove <br>Total population: 1610 <br>Young share: 23.0% <br>Active share: 59.6% <br>Old share: 17.4% <br>Group: Higher old-age share","Planning Area: Novena <br>Subzone: Balestier <br>Total population: 32360 <br>Young share: 22.8% <br>Active share: 59.4% <br>Old share: 17.8% <br>Group: Higher old-age share","Planning Area: Novena <br>Subzone: Dunearn <br>Total population: 3910 <br>Young share: 28.4% <br>Active share: 52.4% <br>Old share: 19.2% <br>Group: Higher old-age share","Planning Area: Novena <br>Subzone: Malcolm <br>Total population: 2830 <br>Young share: 30.4% <br>Active share: 52.7% <br>Old share: 17.0% <br>Group: Higher old-age share","Planning Area: Novena <br>Subzone: Mount Pleasant <br>Total population: 730 <br>Young share: 27.4% <br>Active share: 53.4% <br>Old share: 19.2% <br>Group: Higher old-age share","Planning Area: Orchard <br>Subzone: Boulevard <br>Total population: 450 <br>Young share: 22.2% <br>Active share: 55.6% <br>Old share: 22.2% <br>Group: Higher old-age share","Planning Area: Orchard <br>Subzone: Tanglin <br>Total population: 460 <br>Young share: 26.1% <br>Active share: 58.7% <br>Old share: 15.2% <br>Group: Higher old-age share","Planning Area: Outram <br>Subzone: China Square <br>Total population: 1520 <br>Young share: 11.8% <br>Active share: 58.6% <br>Old share: 29.6% <br>Group: Higher old-age share","Planning Area: Outram <br>Subzone: Chinatown <br>Total population: 10950 <br>Young share: 22.3% <br>Active share: 58.8% <br>Old share: 18.9% <br>Group: Higher old-age share","Planning Area: Outram <br>Subzone: Pearl's Hill <br>Total population: 7340 <br>Young share: 16.8% <br>Active share: 53.3% <br>Old share: 30.0% <br>Group: Higher old-age share","Planning Area: Outram <br>Subzone: People's Park <br>Total population: 290 <br>Young share: 3.4% <br>Active share: 79.3% <br>Old share: 17.2% <br>Group: Higher old-age share","Planning Area: Pasir Ris <br>Subzone: Loyang West <br>Total population: 170 <br>Young share: 0.0% <br>Active share: 0.0% <br>Old share: 100.0% <br>Group: Higher old-age share","Planning Area: Punggol <br>Subzone: Northshore <br>Total population: 250 <br>Young share: 28.0% <br>Active share: 56.0% <br>Old share: 16.0% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Commonwealth <br>Total population: 7460 <br>Young share: 18.5% <br>Active share: 57.9% <br>Old share: 23.6% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Dover <br>Total population: 11320 <br>Young share: 25.9% <br>Active share: 56.1% <br>Old share: 18.0% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Ghim Moh <br>Total population: 13570 <br>Young share: 22.8% <br>Active share: 55.0% <br>Old share: 22.3% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Holland Drive <br>Total population: 13210 <br>Young share: 17.8% <br>Active share: 56.4% <br>Old share: 25.8% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Kent Ridge <br>Total population: 840 <br>Young share: 21.4% <br>Active share: 61.9% <br>Old share: 16.7% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Mei Chin <br>Total population: 15840 <br>Young share: 23.0% <br>Active share: 57.8% <br>Old share: 19.2% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Pasir Panjang 2 <br>Total population: 3280 <br>Young share: 24.4% <br>Active share: 60.1% <br>Old share: 15.5% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Port <br>Total population: 100 <br>Young share: 10.0% <br>Active share: 70.0% <br>Old share: 20.0% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Queensway <br>Total population: 310 <br>Young share: 16.1% <br>Active share: 67.7% <br>Old share: 16.1% <br>Group: Higher old-age share","Planning Area: Queenstown <br>Subzone: Tanglin Halt <br>Total population: 11800 <br>Young share: 19.4% <br>Active share: 57.7% <br>Old share: 22.9% <br>Group: Higher old-age share","Planning Area: River Valley <br>Subzone: One Tree Hill <br>Total population: 1930 <br>Young share: 24.9% <br>Active share: 58.5% <br>Old share: 16.6% <br>Group: Higher old-age share","Planning Area: River Valley <br>Subzone: Oxley <br>Total population: 1470 <br>Young share: 21.8% <br>Active share: 60.5% <br>Old share: 17.7% <br>Group: Higher old-age share","Planning Area: Rochor <br>Subzone: Bencoolen <br>Total population: 1290 <br>Young share: 16.3% <br>Active share: 60.5% <br>Old share: 23.3% <br>Group: Higher old-age share","Planning Area: Rochor <br>Subzone: Farrer Park <br>Total population: 2830 <br>Young share: 21.2% <br>Active share: 60.4% <br>Old share: 18.4% <br>Group: Higher old-age share","Planning Area: Rochor <br>Subzone: Kampong Glam <br>Total population: 140 <br>Young share: 0.0% <br>Active share: 71.4% <br>Old share: 28.6% <br>Group: Higher old-age share","Planning Area: Rochor <br>Subzone: Little India <br>Total population: 3460 <br>Young share: 18.8% <br>Active share: 57.2% <br>Old share: 24.0% <br>Group: Higher old-age share","Planning Area: Rochor <br>Subzone: Selegie <br>Total population: 250 <br>Young share: 20.0% <br>Active share: 64.0% <br>Old share: 16.0% <br>Group: Higher old-age share","Planning Area: Rochor <br>Subzone: Sungei Road <br>Total population: 2180 <br>Young share: 21.6% <br>Active share: 54.1% <br>Old share: 24.3% <br>Group: Higher old-age share","Planning Area: Rochor <br>Subzone: Victoria <br>Total population: 1940 <br>Young share: 13.4% <br>Active share: 58.8% <br>Old share: 27.8% <br>Group: Higher old-age share","Planning Area: Serangoon <br>Subzone: Seletar Hills <br>Total population: 13920 <br>Young share: 27.1% <br>Active share: 56.0% <br>Old share: 17.0% <br>Group: Higher old-age share","Planning Area: Serangoon <br>Subzone: Serangoon Central <br>Total population: 25150 <br>Young share: 20.8% <br>Active share: 61.4% <br>Old share: 17.8% <br>Group: Higher old-age share","Planning Area: Serangoon <br>Subzone: Serangoon Garden <br>Total population: 37300 <br>Young share: 22.7% <br>Active share: 57.4% <br>Old share: 19.9% <br>Group: Higher old-age share","Planning Area: Serangoon <br>Subzone: Upper Paya Lebar <br>Total population: 16240 <br>Young share: 23.5% <br>Active share: 59.9% <br>Old share: 16.6% <br>Group: Higher old-age share","Planning Area: Singapore River <br>Subzone: Boat Quay <br>Total population: 120 <br>Young share: 0.0% <br>Active share: 83.3% <br>Old share: 16.7% <br>Group: Higher old-age share","Planning Area: Sungei Kadut <br>Subzone: Turf Club <br>Total population: 710 <br>Young share: 23.9% <br>Active share: 54.9% <br>Old share: 21.1% <br>Group: Higher old-age share","Planning Area: Tanglin <br>Subzone: Ridout <br>Total population: 1430 <br>Young share: 25.9% <br>Active share: 56.6% <br>Old share: 17.5% <br>Group: Higher old-age share","Planning Area: Tanglin <br>Subzone: Tyersall <br>Total population: 3650 <br>Young share: 26.6% <br>Active share: 57.5% <br>Old share: 15.9% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Boon Teck <br>Total population: 13600 <br>Young share: 22.6% <br>Active share: 54.5% <br>Old share: 22.9% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Braddell <br>Total population: 10020 <br>Young share: 23.6% <br>Active share: 56.4% <br>Old share: 20.1% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Joo Seng <br>Total population: 7970 <br>Young share: 23.2% <br>Active share: 60.4% <br>Old share: 16.4% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Kim Keat <br>Total population: 8300 <br>Young share: 20.4% <br>Active share: 59.0% <br>Old share: 20.6% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Lorong 8 Toa Payoh <br>Total population: 7560 <br>Young share: 20.2% <br>Active share: 55.8% <br>Old share: 23.9% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Pei Chun <br>Total population: 10810 <br>Young share: 22.0% <br>Active share: 57.1% <br>Old share: 20.9% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Potong Pasir <br>Total population: 11320 <br>Young share: 19.8% <br>Active share: 59.5% <br>Old share: 20.8% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Sennett <br>Total population: 5410 <br>Young share: 24.6% <br>Active share: 56.2% <br>Old share: 19.2% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Toa Payoh Central <br>Total population: 28880 <br>Young share: 25.0% <br>Active share: 58.1% <br>Old share: 17.0% <br>Group: Higher old-age share","Planning Area: Toa Payoh <br>Subzone: Toa Payoh West <br>Total population: 14290 <br>Young share: 19.3% <br>Active share: 57.9% <br>Old share: 22.8% <br>Group: Higher old-age share","Planning Area: Woodlands <br>Subzone: North Coast <br>Total population: 12890 <br>Young share: 24.8% <br>Active share: 59.3% <br>Old share: 15.9% <br>Group: Higher old-age share","Planning Area: Yishun <br>Subzone: Nee Soon <br>Total population: 940 <br>Young share: 25.5% <br>Active share: 58.5% <br>Old share: 16.0% <br>Group: Higher old-age share","Planning Area: Yishun <br>Subzone: Springleaf <br>Total population: 4230 <br>Young share: 28.1% <br>Active share: 55.6% <br>Old share: 16.3% <br>Group: Higher old-age share","Planning Area: Yishun <br>Subzone: Yishun Central <br>Total population: 1380 <br>Young share: 23.2% <br>Active share: 61.6% <br>Old share: 15.2% <br>Group: Higher old-age share"],"hoverinfo":["text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text"],"type":"scatterternary","name":"Higher old-age share","textfont":{"color":"rgba(42,111,111,1)"},"line":{"color":"rgba(42,111,111,1)"},"frame":null},{"a":[0.27536231884057971,0.28038674033149169,0.27455529775715393,0.27353815659068387,0.30451866404715128,0.25628517823639774,0.22464312546957174,0.28922872340425532,0.25904392764857881,0.27425742574257428,0.26183206106870227,0.28916929547844372,0.25279642058165547,0.2937062937062937,0.2507836990595611,0.24465765372873965,0.30505952380952384,0.30666666666666664,0.26683369871594115,0.29581151832460734,0.31409039118875809,0.31868662481892807,0.29759999999999998,0.31394072447859495,0.31958762886597936,0.41610738255033558,0.30311483031148301,0.33201581027667987,0.33262129996948431,0.29682398337785693,0.26207442596991293,0.31314837153196623,0.31239388794567063,0.31663974151857838,0.13636363636363635,0.19402985074626866,0.14754098360655737,0.24308943089430896,0.25157232704402516,0.26137270550678371,0.2590759075907591,0.2633009708737864,0.27516930022573366,0.29268292682926828,0.25787401574803148,0.29516876240900064,0.2498633132859486,0.29371480748744483,0.30116429495472186,0.32061978545887959,0.29504864236968203,0.26558265582655827,0.29577464788732394,0.083333333333333329,0.20000000000000001,0.26273458445040215,0.30508474576271188,0.27000000000000002,0.17391304347826086,0.30911062906724512,0.090909090909090912,0.2880546075085324,0.2638888888888889,0.30650964998364411,0.30035714285714288,0.33608815426997246,0.32385422418553284,0.33639207507820645,0.3292028087567121,0.33123569794050345,0.33782361608082506,0.27012641383898867,0.44,0.26153846153846155,0.25850340136054423,0.29999999999999999,0.27350427350427353,0.25352112676056338,0.29999999999999999,0.25,0.20149253731343283,0.39130434782608697,0.31311706629055008,0.3051735428945645,0.30270906949352178,0.31400228920259443,0.30818619582664525,0.31791907514450868,0.32777142857142855,0.31477111845210004,0.33159947984395316,0.30153237765694513,0.30114192495921699,0.28771929824561404,0.28132678132678135,0.071428571428571425,0.27106227106227104,0.28333333333333333,0.26590740282248082,0.26574876008586867,0.2754094261782723,0.27011494252873564,0.25384615384615383,0.30434782608695654,0.29098360655737704,0.31506849315068491,0.33768760422456923,0.31029496818970503,0.32732330517205854,0.34175370415350986,0.27045454545454545,0.22106261859582543,0.35728282168517311,0.25757575757575757,0.31138040042149634,0.24443356985563983,0.24269582362430542],"b":[0.57349896480331264,0.60220994475138123,0.60208816705336432,0.59464816650148666,0.64440078585461691,0.60863039399624763,0.62584522915101426,0.62167553191489366,0.60529715762273906,0.58415841584158412,0.61145038167938937,0.59989484752891697,0.62043251304996272,0.63636363636363635,0.62068965517241381,0.61055385957261232,0.6026785714285714,0.59508771929824567,0.61008455997494515,0.59162303664921467,0.60159513862514247,0.59005311443746977,0.56159999999999999,0.54116355653128434,0.55014058106841612,0.55033557046979864,0.59925615992561598,0.58193979933110362,0.60085444003661881,0.60314633422380526,0.59897070467141722,0.60603136308805794,0.57385398981324276,0.56219709208400648,0.86363636363636365,0.76119402985074625,0.73770491803278693,0.62682926829268293,0.59958071278825997,0.62569832402234637,0.60297029702970295,0.58873786407766993,0.59977426636568854,0.68292682926829273,0.62401574803149606,0.58901389808074123,0.59996355020958625,0.62030132399939131,0.59404915912031053,0.59117997616209772,0.60127776971104985,0.60252935862691959,0.58685446009389675,0.83333333333333337,0.73333333333333328,0.59249329758713132,0.5847457627118644,0.57999999999999996,0.69565217391304346,0.58242950108459868,0.90909090909090906,0.60273037542662111,0.59722222222222221,0.60680405626431144,0.59178571428571425,0.61707988980716255,0.59166206515737163,0.60208550573514075,0.58488228004956633,0.6167048054919908,0.60176804883182489,0.58682634730538918,0.56000000000000005,0.70769230769230773,0.61904761904761907,0.69999999999999996,0.61538461538461542,0.64084507042253525,0.69999999999999996,0.75,0.70895522388059706,0.60869565217391308,0.59802538787023973,0.61296660117878188,0.65017667844522964,0.60320488363220148,0.5762439807383628,0.5780346820809249,0.59794285714285711,0.61019348749410096,0.59112019320081743,0.59976931949250289,0.61060358890701472,0.57076023391812869,0.59766584766584763,0.8571428571428571,0.65567765567765568,0.66111111111111109,0.60658578856152512,0.60344955215041829,0.60382547818477306,0.62643678160919536,0.62307692307692308,0.56415694591728527,0.60245901639344257,0.58904109589041098,0.58365758754863817,0.60063620589936384,0.60148361838038322,0.58343453971338355,0.5967532467532467,0.62998102466793171,0.59699542782495096,0.6198347107438017,0.60537407797681775,0.62515292390506483,0.61803190535938335],"c":[0.15113871635610765,0.11740331491712708,0.12335653518948182,0.13181367690782952,0.051080550098231828,0.1350844277673546,0.14951164537941397,0.089095744680851061,0.13565891472868216,0.14158415841584157,0.12671755725190839,0.11093585699263933,0.12677106636838181,0.069930069930069935,0.12852664576802508,0.14478848669864805,0.092261904761904767,0.098245614035087719,0.12308174130911369,0.112565445026178,0.084314470186099499,0.09126026074360212,0.14080000000000001,0.14489571899012074,0.13027179006560449,0.033557046979865772,0.097629009762900981,0.08604439039221648,0.066524259993896856,0.10002968239833779,0.13895486935866982,0.080820265379975872,0.11375212224108659,0.12116316639741519,0,0.044776119402985072,0.11475409836065574,0.13008130081300814,0.1488469601677149,0.11292897047086992,0.13795379537953795,0.1479611650485437,0.12505643340857789,0.024390243902439025,0.11811023622047244,0.1158173395102581,0.15017313650446509,0.085983868513163905,0.10478654592496765,0.088200238379022647,0.10367358791926819,0.13188798554652212,0.11737089201877934,0.083333333333333329,0.066666666666666666,0.1447721179624665,0.11016949152542373,0.14999999999999999,0.13043478260869565,0.10845986984815618,0,0.10921501706484642,0.1388888888888889,0.086686293752044494,0.10785714285714286,0.046831955922865015,0.08448371065709552,0.061522419186652764,0.085914911193721605,0.05205949656750572,0.06040833508735003,0.14304723885562209,0,0.030769230769230771,0.12244897959183673,0,0.1111111111111111,0.10563380281690141,0,0,0.089552238805970144,0,0.088857545839210156,0.081859855926653569,0.047114252061248529,0.082792827165204114,0.11556982343499198,0.10404624277456648,0.074285714285714288,0.075035394053798957,0.07728032695522942,0.098698302850551992,0.088254486133768351,0.1415204678362573,0.12100737100737101,0.071428571428571425,0.073260073260073263,0.055555555555555552,0.12750680861599406,0.13080168776371309,0.12076509563695462,0.10344827586206896,0.12307692307692308,0.13149522799575822,0.10655737704918032,0.095890410958904104,0.078654808226792661,0.089068825910931168,0.071193076447558207,0.07481175613310663,0.13279220779220779,0.14895635673624288,0.045721750489875895,0.12258953168044077,0.083245521601685982,0.13041350623929532,0.13927227101631118],"mode":"markers","marker":{"color":"rgba(217,95,2,1)","size":7,"opacity":0.75,"line":{"color":"#1F1F1F","width":0.5}},"text":["Planning Area: Ang Mo Kio <br>Subzone: Ang Mo Kio Town Centre <br>Total population: 4830 <br>Young share: 27.5% <br>Active share: 57.3% <br>Old share: 15.1% <br>Group: Lower old-age share","Planning Area: Bedok <br>Subzone: Bayshore <br>Total population: 7240 <br>Young share: 28.0% <br>Active share: 60.2% <br>Old share: 11.7% <br>Group: Lower old-age share","Planning Area: Bedok <br>Subzone: Bedok Reservoir <br>Total population: 25860 <br>Young share: 27.5% <br>Active share: 60.2% <br>Old share: 12.3% <br>Group: Lower old-age share","Planning Area: Bishan <br>Subzone: Marymount <br>Total population: 30270 <br>Young share: 27.4% <br>Active share: 59.5% <br>Old share: 13.2% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Brickworks <br>Total population: 5090 <br>Young share: 30.5% <br>Active share: 64.4% <br>Old share: 5.1% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Bukit Batok Central <br>Total population: 26650 <br>Young share: 25.6% <br>Active share: 60.9% <br>Old share: 13.5% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Bukit Batok East <br>Total population: 13310 <br>Young share: 22.5% <br>Active share: 62.6% <br>Old share: 15.0% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Bukit Batok South <br>Total population: 15040 <br>Young share: 28.9% <br>Active share: 62.2% <br>Old share: 8.9% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Bukit Batok West <br>Total population: 15480 <br>Young share: 25.9% <br>Active share: 60.5% <br>Old share: 13.6% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Gombak <br>Total population: 10100 <br>Young share: 27.4% <br>Active share: 58.4% <br>Old share: 14.2% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Guilin <br>Total population: 13100 <br>Young share: 26.2% <br>Active share: 61.1% <br>Old share: 12.7% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Hillview <br>Total population: 19020 <br>Young share: 28.9% <br>Active share: 60.0% <br>Old share: 11.1% <br>Group: Lower old-age share","Planning Area: Bukit Batok <br>Subzone: Hong Kah North <br>Total population: 26820 <br>Young share: 25.3% <br>Active share: 62.0% <br>Old share: 12.7% <br>Group: Lower old-age share","Planning Area: Bukit Merah <br>Subzone: Alexandra North <br>Total population: 1430 <br>Young share: 29.4% <br>Active share: 63.6% <br>Old share: 7.0% <br>Group: Lower old-age share","Planning Area: Bukit Merah <br>Subzone: Maritime Square <br>Total population: 3190 <br>Young share: 25.1% <br>Active share: 62.1% <br>Old share: 12.9% <br>Group: Lower old-age share","Planning Area: Bukit Panjang <br>Subzone: Bangkit <br>Total population: 22930 <br>Young share: 24.5% <br>Active share: 61.1% <br>Old share: 14.5% <br>Group: Lower old-age share","Planning Area: Bukit Panjang <br>Subzone: Dairy Farm <br>Total population: 6720 <br>Young share: 30.5% <br>Active share: 60.3% <br>Old share: 9.2% <br>Group: Lower old-age share","Planning Area: Bukit Panjang <br>Subzone: Fajar <br>Total population: 28500 <br>Young share: 30.7% <br>Active share: 59.5% <br>Old share: 9.8% <br>Group: Lower old-age share","Planning Area: Bukit Panjang <br>Subzone: Jelebu <br>Total population: 31930 <br>Young share: 26.7% <br>Active share: 61.0% <br>Old share: 12.3% <br>Group: Lower old-age share","Planning Area: Bukit Panjang <br>Subzone: Nature Reserve <br>Total population: 3820 <br>Young share: 29.6% <br>Active share: 59.2% <br>Old share: 11.3% <br>Group: Lower old-age share","Planning Area: Bukit Panjang <br>Subzone: Saujana <br>Total population: 26330 <br>Young share: 31.4% <br>Active share: 60.2% <br>Old share: 8.4% <br>Group: Lower old-age share","Planning Area: Bukit Panjang <br>Subzone: Senja <br>Total population: 20710 <br>Young share: 31.9% <br>Active share: 59.0% <br>Old share: 9.1% <br>Group: Lower old-age share","Planning Area: Bukit Timah <br>Subzone: Farrer Court <br>Total population: 6250 <br>Young share: 29.8% <br>Active share: 56.2% <br>Old share: 14.1% <br>Group: Lower old-age share","Planning Area: Bukit Timah <br>Subzone: Hillcrest <br>Total population: 9110 <br>Young share: 31.4% <br>Active share: 54.1% <br>Old share: 14.5% <br>Group: Lower old-age share","Planning Area: Bukit Timah <br>Subzone: Holland Road <br>Total population: 10670 <br>Young share: 32.0% <br>Active share: 55.0% <br>Old share: 13.0% <br>Group: Lower old-age share","Planning Area: Changi <br>Subzone: Changi West <br>Total population: 1490 <br>Young share: 41.6% <br>Active share: 55.0% <br>Old share: 3.4% <br>Group: Lower old-age share","Planning Area: Choa Chu Kang <br>Subzone: Choa Chu Kang Central <br>Total population: 21510 <br>Young share: 30.3% <br>Active share: 59.9% <br>Old share: 9.8% <br>Group: Lower old-age share","Planning Area: Choa Chu Kang <br>Subzone: Choa Chu Kang North <br>Total population: 32890 <br>Young share: 33.2% <br>Active share: 58.2% <br>Old share: 8.6% <br>Group: Lower old-age share","Planning Area: Choa Chu Kang <br>Subzone: Keat Hong <br>Total population: 32770 <br>Young share: 33.3% <br>Active share: 60.1% <br>Old share: 6.7% <br>Group: Lower old-age share","Planning Area: Choa Chu Kang <br>Subzone: Peng Siang <br>Total population: 33690 <br>Young share: 29.7% <br>Active share: 60.3% <br>Old share: 10.0% <br>Group: Lower old-age share","Planning Area: Choa Chu Kang <br>Subzone: Teck Whye <br>Total population: 25260 <br>Young share: 26.2% <br>Active share: 59.9% <br>Old share: 13.9% <br>Group: Lower old-age share","Planning Area: Choa Chu Kang <br>Subzone: Yew Tee <br>Total population: 41450 <br>Young share: 31.3% <br>Active share: 60.6% <br>Old share: 8.1% <br>Group: Lower old-age share","Planning Area: Clementi <br>Subzone: Faber <br>Total population: 5890 <br>Young share: 31.2% <br>Active share: 57.4% <br>Old share: 11.4% <br>Group: Lower old-age share","Planning Area: Clementi <br>Subzone: West Coast <br>Total population: 6190 <br>Young share: 31.7% <br>Active share: 56.2% <br>Old share: 12.1% <br>Group: Lower old-age share","Planning Area: Downtown Core <br>Subzone: Cecil <br>Total population: 220 <br>Young share: 13.6% <br>Active share: 86.4% <br>Old share: 0.0% <br>Group: Lower old-age share","Planning Area: Downtown Core <br>Subzone: Central Subzone <br>Total population: 670 <br>Young share: 19.4% <br>Active share: 76.1% <br>Old share: 4.5% <br>Group: Lower old-age share","Planning Area: Downtown Core <br>Subzone: Tanjong Pagar <br>Total population: 610 <br>Young share: 14.8% <br>Active share: 73.8% <br>Old share: 11.5% <br>Group: Lower old-age share","Planning Area: Geylang <br>Subzone: Kampong Ubi <br>Total population: 12300 <br>Young share: 24.3% <br>Active share: 62.7% <br>Old share: 13.0% <br>Group: Lower old-age share","Planning Area: Hougang <br>Subzone: Hougang Central <br>Total population: 4770 <br>Young share: 25.2% <br>Active share: 60.0% <br>Old share: 14.9% <br>Group: Lower old-age share","Planning Area: Hougang <br>Subzone: Hougang East <br>Total population: 25060 <br>Young share: 26.1% <br>Active share: 62.6% <br>Old share: 11.3% <br>Group: Lower old-age share","Planning Area: Hougang <br>Subzone: Kangkar <br>Total population: 30300 <br>Young share: 25.9% <br>Active share: 60.3% <br>Old share: 13.8% <br>Group: Lower old-age share","Planning Area: Hougang <br>Subzone: Kovan <br>Total population: 25750 <br>Young share: 26.3% <br>Active share: 58.9% <br>Old share: 14.8% <br>Group: Lower old-age share","Planning Area: Hougang <br>Subzone: Trafalgar <br>Total population: 44300 <br>Young share: 27.5% <br>Active share: 60.0% <br>Old share: 12.5% <br>Group: Lower old-age share","Planning Area: Jurong East <br>Subzone: Jurong Gateway <br>Total population: 410 <br>Young share: 29.3% <br>Active share: 68.3% <br>Old share: 2.4% <br>Group: Lower old-age share","Planning Area: Jurong East <br>Subzone: Toh Guan <br>Total population: 15240 <br>Young share: 25.8% <br>Active share: 62.4% <br>Old share: 11.8% <br>Group: Lower old-age share","Planning Area: Jurong West <br>Subzone: Boon Lay Place <br>Total population: 30220 <br>Young share: 29.5% <br>Active share: 58.9% <br>Old share: 11.6% <br>Group: Lower old-age share","Planning Area: Jurong West <br>Subzone: Hong Kah <br>Total population: 54870 <br>Young share: 25.0% <br>Active share: 60.0% <br>Old share: 15.0% <br>Group: Lower old-age share","Planning Area: Jurong West <br>Subzone: Jurong West Central <br>Total population: 65710 <br>Young share: 29.4% <br>Active share: 62.0% <br>Old share: 8.6% <br>Group: Lower old-age share","Planning Area: Jurong West <br>Subzone: Taman Jurong <br>Total population: 38650 <br>Young share: 30.1% <br>Active share: 59.4% <br>Old share: 10.5% <br>Group: Lower old-age share","Planning Area: Jurong West <br>Subzone: Wenya <br>Total population: 8390 <br>Young share: 32.1% <br>Active share: 59.1% <br>Old share: 8.8% <br>Group: Lower old-age share","Planning Area: Jurong West <br>Subzone: Yunnan <br>Total population: 68870 <br>Young share: 29.5% <br>Active share: 60.1% <br>Old share: 10.4% <br>Group: Lower old-age share","Planning Area: Kallang <br>Subzone: Tanjong Rhu <br>Total population: 11070 <br>Young share: 26.6% <br>Active share: 60.3% <br>Old share: 13.2% <br>Group: Lower old-age share","Planning Area: Mandai <br>Subzone: Mandai Estate <br>Total population: 2130 <br>Young share: 29.6% <br>Active share: 58.7% <br>Old share: 11.7% <br>Group: Lower old-age share","Planning Area: Museum <br>Subzone: Dhoby Ghaut <br>Total population: 240 <br>Young share: 8.3% <br>Active share: 83.3% <br>Old share: 8.3% <br>Group: Lower old-age share","Planning Area: Museum <br>Subzone: Fort Canning <br>Total population: 150 <br>Young share: 20.0% <br>Active share: 73.3% <br>Old share: 6.7% <br>Group: Lower old-age share","Planning Area: Newton <br>Subzone: Cairnhill <br>Total population: 3730 <br>Young share: 26.3% <br>Active share: 59.2% <br>Old share: 14.5% <br>Group: Lower old-age share","Planning Area: Newton <br>Subzone: Goodwood Park <br>Total population: 1180 <br>Young share: 30.5% <br>Active share: 58.5% <br>Old share: 11.0% <br>Group: Lower old-age share","Planning Area: Newton <br>Subzone: Monk's Hill <br>Total population: 1000 <br>Young share: 27.0% <br>Active share: 58.0% <br>Old share: 15.0% <br>Group: Lower old-age share","Planning Area: Newton <br>Subzone: Newton Circus <br>Total population: 230 <br>Young share: 17.4% <br>Active share: 69.6% <br>Old share: 13.0% <br>Group: Lower old-age share","Planning Area: Novena <br>Subzone: Moulmein <br>Total population: 9220 <br>Young share: 30.9% <br>Active share: 58.2% <br>Old share: 10.8% <br>Group: Lower old-age share","Planning Area: Orchard <br>Subzone: Somerset <br>Total population: 110 <br>Young share: 9.1% <br>Active share: 90.9% <br>Old share: 0.0% <br>Group: Lower old-age share","Planning Area: Pasir Ris <br>Subzone: Flora Drive <br>Total population: 14650 <br>Young share: 28.8% <br>Active share: 60.3% <br>Old share: 10.9% <br>Group: Lower old-age share","Planning Area: Pasir Ris <br>Subzone: Loyang East <br>Total population: 2160 <br>Young share: 26.4% <br>Active share: 59.7% <br>Old share: 13.9% <br>Group: Lower old-age share","Planning Area: Pasir Ris <br>Subzone: Pasir Ris Central <br>Total population: 30570 <br>Young share: 30.7% <br>Active share: 60.7% <br>Old share: 8.7% <br>Group: Lower old-age share","Planning Area: Pasir Ris <br>Subzone: Pasir Ris Drive <br>Total population: 56000 <br>Young share: 30.0% <br>Active share: 59.2% <br>Old share: 10.8% <br>Group: Lower old-age share","Planning Area: Pasir Ris <br>Subzone: Pasir Ris Park <br>Total population: 7260 <br>Young share: 33.6% <br>Active share: 61.7% <br>Old share: 4.7% <br>Group: Lower old-age share","Planning Area: Pasir Ris <br>Subzone: Pasir Ris West <br>Total population: 36220 <br>Young share: 32.4% <br>Active share: 59.2% <br>Old share: 8.4% <br>Group: Lower old-age share","Planning Area: Punggol <br>Subzone: Matilda <br>Total population: 47950 <br>Young share: 33.6% <br>Active share: 60.2% <br>Old share: 6.2% <br>Group: Lower old-age share","Planning Area: Punggol <br>Subzone: Punggol Field <br>Total population: 48420 <br>Young share: 32.9% <br>Active share: 58.5% <br>Old share: 8.6% <br>Group: Lower old-age share","Planning Area: Punggol <br>Subzone: Punggol Town Centre <br>Total population: 17480 <br>Young share: 33.1% <br>Active share: 61.7% <br>Old share: 5.2% <br>Group: Lower old-age share","Planning Area: Punggol <br>Subzone: Waterway East <br>Total population: 47510 <br>Young share: 33.8% <br>Active share: 60.2% <br>Old share: 6.0% <br>Group: Lower old-age share","Planning Area: Queenstown <br>Subzone: Margaret Drive <br>Total population: 15030 <br>Young share: 27.0% <br>Active share: 58.7% <br>Old share: 14.3% <br>Group: Lower old-age share","Planning Area: Queenstown <br>Subzone: National University Of S'pore <br>Total population: 250 <br>Young share: 44.0% <br>Active share: 56.0% <br>Old share: 0.0% <br>Group: Lower old-age share","Planning Area: Queenstown <br>Subzone: One North <br>Total population: 650 <br>Young share: 26.2% <br>Active share: 70.8% <br>Old share: 3.1% <br>Group: Lower old-age share","Planning Area: Queenstown <br>Subzone: Pasir Panjang 1 <br>Total population: 4410 <br>Young share: 25.9% <br>Active share: 61.9% <br>Old share: 12.2% <br>Group: Lower old-age share","Planning Area: Queenstown <br>Subzone: Singapore Polytechnic <br>Total population: 100 <br>Young share: 30.0% <br>Active share: 70.0% <br>Old share: 0.0% <br>Group: Lower old-age share","Planning Area: River Valley <br>Subzone: Institution Hill <br>Total population: 3510 <br>Young share: 27.4% <br>Active share: 61.5% <br>Old share: 11.1% <br>Group: Lower old-age share","Planning Area: River Valley <br>Subzone: Leonie Hill <br>Total population: 2840 <br>Young share: 25.4% <br>Active share: 64.1% <br>Old share: 10.6% <br>Group: Lower old-age share","Planning Area: River Valley <br>Subzone: Paterson <br>Total population: 200 <br>Young share: 30.0% <br>Active share: 70.0% <br>Old share: 0.0% <br>Group: Lower old-age share","Planning Area: Rochor <br>Subzone: Mackenzie <br>Total population: 120 <br>Young share: 25.0% <br>Active share: 75.0% <br>Old share: 0.0% <br>Group: Lower old-age share","Planning Area: Rochor <br>Subzone: Mount Emily <br>Total population: 1340 <br>Young share: 20.1% <br>Active share: 70.9% <br>Old share: 9.0% <br>Group: Lower old-age share","Planning Area: Seletar <br>Subzone: Seletar <br>Total population: 230 <br>Young share: 39.1% <br>Active share: 60.9% <br>Old share: 0.0% <br>Group: Lower old-age share","Planning Area: Sembawang <br>Subzone: Admiralty <br>Total population: 14180 <br>Young share: 31.3% <br>Active share: 59.8% <br>Old share: 8.9% <br>Group: Lower old-age share","Planning Area: Sembawang <br>Subzone: Sembawang Central <br>Total population: 30540 <br>Young share: 30.5% <br>Active share: 61.3% <br>Old share: 8.2% <br>Group: Lower old-age share","Planning Area: Sembawang <br>Subzone: Sembawang East <br>Total population: 8490 <br>Young share: 30.3% <br>Active share: 65.0% <br>Old share: 4.7% <br>Group: Lower old-age share","Planning Area: Sembawang <br>Subzone: Sembawang North <br>Total population: 26210 <br>Young share: 31.4% <br>Active share: 60.3% <br>Old share: 8.3% <br>Group: Lower old-age share","Planning Area: Sembawang <br>Subzone: Sembawang Springs <br>Total population: 6230 <br>Young share: 30.8% <br>Active share: 57.6% <br>Old share: 11.6% <br>Group: Lower old-age share","Planning Area: Sembawang <br>Subzone: Sembawang Straits <br>Total population: 1730 <br>Young share: 31.8% <br>Active share: 57.8% <br>Old share: 10.4% <br>Group: Lower old-age share","Planning Area: Sengkang <br>Subzone: Anchorvale <br>Total population: 43750 <br>Young share: 32.8% <br>Active share: 59.8% <br>Old share: 7.4% <br>Group: Lower old-age share","Planning Area: Sengkang <br>Subzone: Compassvale <br>Total population: 21190 <br>Young share: 31.5% <br>Active share: 61.0% <br>Old share: 7.5% <br>Group: Lower old-age share","Planning Area: Sengkang <br>Subzone: Fernvale <br>Total population: 53830 <br>Young share: 33.2% <br>Active share: 59.1% <br>Old share: 7.7% <br>Group: Lower old-age share","Planning Area: Sengkang <br>Subzone: Rivervale <br>Total population: 60690 <br>Young share: 30.2% <br>Active share: 60.0% <br>Old share: 9.9% <br>Group: Lower old-age share","Planning Area: Sengkang <br>Subzone: Sengkang Town Centre <br>Total population: 61300 <br>Young share: 30.1% <br>Active share: 61.1% <br>Old share: 8.8% <br>Group: Lower old-age share","Planning Area: Serangoon <br>Subzone: Lorong Chuan <br>Total population: 8550 <br>Young share: 28.8% <br>Active share: 57.1% <br>Old share: 14.2% <br>Group: Lower old-age share","Planning Area: Serangoon <br>Subzone: Serangoon North <br>Total population: 16280 <br>Young share: 28.1% <br>Active share: 59.8% <br>Old share: 12.1% <br>Group: Lower old-age share","Planning Area: Singapore River <br>Subzone: Clarke Quay <br>Total population: 140 <br>Young share: 7.1% <br>Active share: 85.7% <br>Old share: 7.1% <br>Group: Lower old-age share","Planning Area: Singapore River <br>Subzone: Robertson Quay <br>Total population: 2730 <br>Young share: 27.1% <br>Active share: 65.6% <br>Old share: 7.3% <br>Group: Lower old-age share","Planning Area: Southern Islands <br>Subzone: Sentosa <br>Total population: 1800 <br>Young share: 28.3% <br>Active share: 66.1% <br>Old share: 5.6% <br>Group: Lower old-age share","Planning Area: Tampines <br>Subzone: Simei <br>Total population: 40390 <br>Young share: 26.6% <br>Active share: 60.7% <br>Old share: 12.8% <br>Group: Lower old-age share","Planning Area: Tampines <br>Subzone: Tampines East <br>Total population: 135090 <br>Young share: 26.6% <br>Active share: 60.3% <br>Old share: 13.1% <br>Group: Lower old-age share","Planning Area: Tampines <br>Subzone: Tampines West <br>Total population: 79990 <br>Young share: 27.5% <br>Active share: 60.4% <br>Old share: 12.1% <br>Group: Lower old-age share","Planning Area: Tampines <br>Subzone: Xilin <br>Total population: 1740 <br>Young share: 27.0% <br>Active share: 62.6% <br>Old share: 10.3% <br>Group: Lower old-age share","Planning Area: Tanglin <br>Subzone: Chatsworth <br>Total population: 6500 <br>Young share: 25.4% <br>Active share: 62.3% <br>Old share: 12.3% <br>Group: Lower old-age share","Planning Area: Tanglin <br>Subzone: Nassim <br>Total population: 9430 <br>Young share: 30.4% <br>Active share: 56.4% <br>Old share: 13.1% <br>Group: Lower old-age share","Planning Area: Toa Payoh <br>Subzone: Woodleigh <br>Total population: 2440 <br>Young share: 29.1% <br>Active share: 60.2% <br>Old share: 10.7% <br>Group: Lower old-age share","Planning Area: Western Water Catchment <br>Subzone: Western Water Catchment <br>Total population: 730 <br>Young share: 31.5% <br>Active share: 58.9% <br>Old share: 9.6% <br>Group: Lower old-age share","Planning Area: Woodlands <br>Subzone: Midview <br>Total population: 35980 <br>Young share: 33.8% <br>Active share: 58.4% <br>Old share: 7.9% <br>Group: Lower old-age share","Planning Area: Woodlands <br>Subzone: Woodgrove <br>Total population: 34580 <br>Young share: 31.0% <br>Active share: 60.1% <br>Old share: 8.9% <br>Group: Lower old-age share","Planning Area: Woodlands <br>Subzone: Woodlands East <br>Total population: 97060 <br>Young share: 32.7% <br>Active share: 60.1% <br>Old share: 7.1% <br>Group: Lower old-age share","Planning Area: Woodlands <br>Subzone: Woodlands South <br>Total population: 41170 <br>Young share: 34.2% <br>Active share: 58.3% <br>Old share: 7.5% <br>Group: Lower old-age share","Planning Area: Woodlands <br>Subzone: Woodlands West <br>Total population: 30800 <br>Young share: 27.0% <br>Active share: 59.7% <br>Old share: 13.3% <br>Group: Lower old-age share","Planning Area: Yishun <br>Subzone: Khatib <br>Total population: 10540 <br>Young share: 22.1% <br>Active share: 63.0% <br>Old share: 14.9% <br>Group: Lower old-age share","Planning Area: Yishun <br>Subzone: Lower Seletar <br>Total population: 15310 <br>Young share: 35.7% <br>Active share: 59.7% <br>Old share: 4.6% <br>Group: Lower old-age share","Planning Area: Yishun <br>Subzone: Northland <br>Total population: 29040 <br>Young share: 25.8% <br>Active share: 62.0% <br>Old share: 12.3% <br>Group: Lower old-age share","Planning Area: Yishun <br>Subzone: Yishun East <br>Total population: 56940 <br>Young share: 31.1% <br>Active share: 60.5% <br>Old share: 8.3% <br>Group: Lower old-age share","Planning Area: Yishun <br>Subzone: Yishun South <br>Total population: 40870 <br>Young share: 24.4% <br>Active share: 62.5% <br>Old share: 13.0% <br>Group: Lower old-age share","Planning Area: Yishun <br>Subzone: Yishun West <br>Total population: 55790 <br>Young share: 24.3% <br>Active share: 61.8% <br>Old share: 13.9% <br>Group: Lower old-age share"],"hoverinfo":["text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text"],"type":"scatterternary","name":"Lower old-age share","textfont":{"color":"rgba(217,95,2,1)"},"line":{"color":"rgba(217,95,2,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
+<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  agpop_share,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">a =</span> <span class="sc">~</span>YOUNG_SHARE,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">b =</span> <span class="sc">~</span>ACTIVE_SHARE,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">c =</span> <span class="sc">~</span>OLD_SHARE,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"scatterternary"</span>,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">mode =</span> <span class="st">"markers"</span>,</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">color =</span> <span class="sc">~</span>Ageing_Group,</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">"#2A6F6F"</span>, <span class="st">"#D95F02"</span>),</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">marker =</span> <span class="fu">list</span>(</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">7</span>,</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">opacity =</span> <span class="fl">0.75</span>,</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">line =</span> <span class="fu">list</span>(</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="st">"#1F1F1F"</span>,</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">width =</span> <span class="fl">0.5</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">text =</span> <span class="sc">~</span><span class="fu">paste</span>(</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Planning Area:"</span>, PA,</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Subzone:"</span>, SZ,</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Total population:"</span>, TOTAL,</span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Young share:"</span>, scales<span class="sc">::</span><span class="fu">percent</span>(YOUNG_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Active share:"</span>, scales<span class="sc">::</span><span class="fu">percent</span>(ACTIVE_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Old share:"</span>, scales<span class="sc">::</span><span class="fu">percent</span>(OLD_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"&lt;br&gt;Group:"</span>, Ageing_Group</span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">hoverinfo =</span> <span class="st">"text"</span></span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(</span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Interactive Ternary Plot of Singapore Population Structure, 2018"</span>,</span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">annotations =</span> <span class="fu">label</span>(<span class="st">"Ternary Markers"</span>),</span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">ternary =</span> ternaryAxes,</span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend =</span> <span class="fu">list</span>(</span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a>      <span class="at">orientation =</span> <span class="st">"h"</span>,</span>
+<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="fl">0.15</span>,</span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="sc">-</span><span class="fl">0.1</span></span>
+<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+<p>The interactive version is useful because the ternary plot may contain many overlapping points. Hover information allows the chart to remain clean while still showing detailed information for each subzone.</p>
+</section>
+</section>
+<section id="my-extension-top-ageing-subzones-table" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="my-extension-top-ageing-subzones-table"><span class="header-section-number">1.6</span> My Extension: Top ageing subzones table</h2>
+<p>To support the ternary plot, we can extract the subzones with the highest old-age share. This gives a simple table for identifying which areas may require closer attention in ageing-related planning.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>top_ageing_subzones <span class="ot">&lt;-</span> agpop_share <span class="sc">%&gt;%</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(OLD_SHARE)) <span class="sc">%&gt;%</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    Year,</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    PA,</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    SZ,</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    TOTAL,</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    YOUNG_SHARE,</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    ACTIVE_SHARE,</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>    OLD_SHARE</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>top_ageing_subzones <span class="sc">%&gt;%</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">YOUNG_SHARE =</span> scales<span class="sc">::</span><span class="fu">percent</span>(YOUNG_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ACTIVE_SHARE =</span> scales<span class="sc">::</span><span class="fu">percent</span>(ACTIVE_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>),</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">OLD_SHARE =</span> scales<span class="sc">::</span><span class="fu">percent</span>(OLD_SHARE, <span class="at">accuracy =</span> <span class="fl">0.1</span>)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">format =</span> <span class="st">"html"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Year</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">PA</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">SZ</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">TOTAL</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">YOUNG_SHARE</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">ACTIVE_SHARE</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">OLD_SHARE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Pasir Ris</td>
+<td style="text-align: left;">Loyang West</td>
+<td style="text-align: right;">170</td>
+<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">100.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Outram</td>
+<td style="text-align: left;">Pearl's Hill</td>
+<td style="text-align: right;">7340</td>
+<td style="text-align: left;">16.8%</td>
+<td style="text-align: left;">53.3%</td>
+<td style="text-align: left;">30.0%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Outram</td>
+<td style="text-align: left;">China Square</td>
+<td style="text-align: right;">1520</td>
+<td style="text-align: left;">11.8%</td>
+<td style="text-align: left;">58.6%</td>
+<td style="text-align: left;">29.6%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Rochor</td>
+<td style="text-align: left;">Kampong Glam</td>
+<td style="text-align: right;">140</td>
+<td style="text-align: left;">0.0%</td>
+<td style="text-align: left;">71.4%</td>
+<td style="text-align: left;">28.6%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Kallang</td>
+<td style="text-align: left;">Crawford</td>
+<td style="text-align: right;">8980</td>
+<td style="text-align: left;">16.6%</td>
+<td style="text-align: left;">54.9%</td>
+<td style="text-align: left;">28.5%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Rochor</td>
+<td style="text-align: left;">Victoria</td>
+<td style="text-align: right;">1940</td>
+<td style="text-align: left;">13.4%</td>
+<td style="text-align: left;">58.8%</td>
+<td style="text-align: left;">27.8%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Queenstown</td>
+<td style="text-align: left;">Holland Drive</td>
+<td style="text-align: right;">13210</td>
+<td style="text-align: left;">17.8%</td>
+<td style="text-align: left;">56.4%</td>
+<td style="text-align: left;">25.8%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Downtown Core</td>
+<td style="text-align: left;">Bugis</td>
+<td style="text-align: right;">860</td>
+<td style="text-align: left;">15.1%</td>
+<td style="text-align: left;">59.3%</td>
+<td style="text-align: left;">25.6%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Bukit Merah</td>
+<td style="text-align: left;">Kampong Tiong Bahru</td>
+<td style="text-align: right;">9490</td>
+<td style="text-align: left;">19.1%</td>
+<td style="text-align: left;">56.2%</td>
+<td style="text-align: left;">24.8%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2018</td>
+<td style="text-align: left;">Bukit Merah</td>
+<td style="text-align: left;">Telok Blangah Rise</td>
+<td style="text-align: right;">12670</td>
+<td style="text-align: left;">19.5%</td>
+<td style="text-align: left;">55.9%</td>
+<td style="text-align: left;">24.6%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The table gives a direct ranking, while the ternary plot gives the wider compositional context. Used together, they make the analysis more readable and less dependent on a single chart.</p>
+</section>
+<section id="reference" class="level2" data-number="1.7">
+<h2 data-number="1.7" class="anchored" data-anchor-id="reference"><span class="header-section-number">1.7</span> Reference</h2>
+<ul>
+<li>ggtern package</li>
+<li>Plotly R documentation</li>
+<li>tidyverse documentation</li>
+<li>Singapore resident pop ulation dataset</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
