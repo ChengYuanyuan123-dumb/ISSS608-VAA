@@ -1,0 +1,765 @@
+---
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    smaller: true
+    scrollable: false
+    footer: "ISSS608 Take-home Exercise 1"
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+required_packages <- c(
+  "tidyverse", "readxl", "janitor", "scales", "patchwork",
+  "forcats", "knitr", "gt", "broom"
+)
+
+missing_packages <- required_packages[!required_packages %in% rownames(installed.packages())]
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages, repos = "https://cloud.r-project.org")
+}
+invisible(lapply(required_packages, library, character.only = TRUE))
+
+my_blue <- "#4F91D9"
+my_blue_dark <- "#1F4E79"
+my_blue_light <- "#D7E6F5"
+my_grey <- "#6B7280"
+my_dark <- "#1F1F1F"
+my_accent <- "#F28E2B"
+
+base_theme <- theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 12),
+    plot.subtitle = element_text(hjust = 0.5, size = 9, color = "#555555"),
+    axis.title = element_text(size = 9),
+    axis.text = element_text(size = 8),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+
+segment_summary <- function(df, var) {
+  df %>%
+    filter(!is.na(.data[[var]]), total_exposure > 0) %>%
+    group_by(segment = .data[[var]]) %>%
+    summarise(
+      records = n(),
+      exposure = sum(total_exposure, na.rm = TRUE),
+      premium = sum(total_premium, na.rm = TRUE),
+      incurred = sum(total_incurred, na.rm = TRUE),
+      claims = sum(total_claims, na.rm = TRUE),
+      loss_ratio = incurred / premium,
+      premium_rate = premium / exposure,
+      claim_frequency = claims / exposure,
+      avg_severity = if_else(claims > 0, incurred / claims, NA_real_),
+      .groups = "drop"
+    ) %>%
+    arrange(desc(loss_ratio))
+}
+```
+
+```{r}
+#| label: import-clean-data
+#| include: false
+
+data_dir <- "data"
+csv_file <- list.files(data_dir, pattern = "\\.csv$", full.names = TRUE)[1]
+xlsx_file <- list.files(data_dir, pattern = "\\.xlsx$", full.names = TRUE)[1]
+
+motor_raw <- readr::read_delim(
+  csv_file,
+  delim = ";",
+  show_col_types = FALSE,
+  locale = locale(encoding = "UTF-8")
+)
+
+var_desc <- readxl::read_excel(xlsx_file) %>%
+  clean_names() %>%
+  select(any_of(c("variables", "description", "group")))
+
+motor <- motor_raw %>%
+  clean_names() %>%
+  mutate(
+    across(
+      any_of(c(
+        "policy_type", "policy_status", "business_type", "payment_frequency",
+        "bonus_score", "fuel_type", "vehicle_brand", "municipality_type",
+        "circulation_area"
+      )),
+      ~ fct_na_value_to_level(as.factor(.x), level = "Unknown")
+    ),
+    year = as.integer(year),
+    policy_status = fct_recode(policy_status, Active = "A", Cancelled = "C"),
+    loss_ratio = if_else(total_premium > 0, total_incurred / total_premium, NA_real_),
+    claim_frequency_py = if_else(total_exposure > 0, total_claims / total_exposure, NA_real_),
+    premium_rate = if_else(total_exposure > 0, total_premium / total_exposure, NA_real_),
+    incurred_rate = if_else(total_exposure > 0, total_incurred / total_exposure, NA_real_),
+    avg_severity = if_else(total_claims > 0, total_incurred / total_claims, NA_real_),
+    positive_loss = total_incurred > 0,
+    lr_cap_95 = pmin(loss_ratio, quantile(loss_ratio[is.finite(loss_ratio)], 0.95, na.rm = TRUE)),
+    lr_cap_99 = pmin(loss_ratio, quantile(loss_ratio[is.finite(loss_ratio)], 0.99, na.rm = TRUE)),
+    incurred_log = log1p(total_incurred),
+    premium_log = log1p(total_premium),
+    driver_age_band = cut(driver_age, breaks = c(-Inf, 25, 35, 45, 55, 65, Inf), labels = c("≤25", "26–35", "36–45", "46–55", "56–65", "66+")),
+    vehicle_age_band = cut(vehicle_age, breaks = c(-Inf, 3, 7, 12, 20, Inf), labels = c("≤3", "4–7", "8–12", "13–20", "21+")),
+    vehicle_value_band = cut(vehicle_value, breaks = quantile(vehicle_value, probs = seq(0, 1, 0.25), na.rm = TRUE), include.lowest = TRUE, labels = c("Low", "Mid-low", "Mid-high", "High")),
+    power_band = cut(power_to_weight_ratio, breaks = quantile(power_to_weight_ratio, probs = seq(0, 1, 0.25), na.rm = TRUE), include.lowest = TRUE, labels = c("Low", "Mid-low", "Mid-high", "High"))
+  )
+
+portfolio_year <- motor %>%
+  group_by(year) %>%
+  summarise(
+    records = n(),
+    exposure = sum(total_exposure, na.rm = TRUE),
+    premium = sum(total_premium, na.rm = TRUE),
+    incurred = sum(total_incurred, na.rm = TRUE),
+    claims = sum(total_claims, na.rm = TRUE),
+    loss_ratio = incurred / premium,
+    premium_rate = premium / exposure,
+    incurred_rate = incurred / exposure,
+    claim_frequency = claims / exposure,
+    .groups = "drop"
+  )
+
+policy_type_summary <- segment_summary(motor, "policy_type")
+bonus_summary <- segment_summary(motor, "bonus_score")
+payment_summary <- segment_summary(motor, "payment_frequency")
+status_summary <- segment_summary(motor, "policy_status")
+business_summary <- segment_summary(motor, "business_type")
+fuel_summary <- segment_summary(motor, "fuel_type")
+brand_summary <- segment_summary(motor, "vehicle_brand")
+area_summary <- segment_summary(motor, "circulation_area")
+
+portfolio_total <- motor %>%
+  summarise(
+    records = n(),
+    insured = n_distinct(insured_id),
+    exposure = sum(total_exposure, na.rm = TRUE),
+    premium = sum(total_premium, na.rm = TRUE),
+    incurred = sum(total_incurred, na.rm = TRUE),
+    claims = sum(total_claims, na.rm = TRUE),
+    loss_ratio = incurred / premium,
+    claim_frequency = claims / exposure,
+    zero_claim_share = mean(total_claims == 0, na.rm = TRUE),
+    zero_loss_share = mean(total_incurred == 0, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{=html}
+<style>
+.reveal { font-size: 28px; }
+.reveal h1, .reveal h2 { text-align: center; font-weight: 700; }
+.reveal h1 { font-size: 1.55em; line-height: 1.10; }
+.reveal h2 { font-size: 1.35em; line-height: 1.08; }
+.reveal p, .reveal li { font-size: 0.66em; line-height: 1.25; }
+.reveal .obs { font-size: 0.56em; line-height: 1.24; margin-top: 6px; }
+.reveal .small-note { font-size: 0.50em; line-height: 1.18; }
+.reveal strong { color: #1F4E79; }
+.reveal .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+.reveal .three-card { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.reveal .content-card { border-left: 7px solid #4F91D9; background: #F6F9FC; padding: 14px 18px; margin-bottom: 12px; }
+.reveal .content-card strong { color: #1F4E79; }
+.reveal .slides section.cover-slide, .reveal section.cover-slide {
+  top: 0 !important; left: 0 !important; transform: none !important;
+  width: 100% !important; height: 100% !important; min-height: 100% !important;
+  padding: 0 !important; margin: 0 !important; display: flex !important;
+  flex-direction: column !important; justify-content: center !important; align-items: center !important;
+  text-align: center !important; box-sizing: border-box !important;
+}
+.reveal section.cover-slide h2 { display: none !important; }
+.reveal section.cover-slide .cover-container { width: 84% !important; max-width: 1200px !important; margin: 0 auto !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; text-align: center !important; transform: translateY(-1vh); }
+.reveal section.cover-slide .cover-title { font-size: 1.85em !important; font-weight: 700 !important; line-height: 1.12 !important; color: #111111 !important; margin-bottom: 0.55em !important; }
+.reveal section.cover-slide .cover-subtitle { font-size: 0.78em !important; line-height: 1.35 !important; color: #333333 !important; margin-bottom: 0.45em !important; }
+.reveal section.cover-slide .cover-meta { font-size: 0.68em !important; line-height: 1.30 !important; color: #333333 !important; }
+</style>
+```
+
+## Cover {.cover-slide}
+
+<div class="cover-container">
+  <div class="cover-title">Motor Insurance Portfolio Profitability and Volatility</div>
+  <div class="cover-subtitle">ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery</div>
+  <div class="cover-meta">Cheng Yuanyuan · 23 May 2026</div>
+</div>
+
+::: {.notes}
+This executive summary uses the same motor insurance portfolio data, but applies a different visual analytics path from the earlier version. The focus is on distribution, concentration, pricing adequacy, and exposure-adjusted segment comparison. The slide deck is designed to support management decisions rather than only describe variables.
+:::
+
+
+## Observation 1 — The dataset is large enough for exposure-adjusted portfolio analysis
+
+```{r}
+#| label: slide-data-audit
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+p_records <- portfolio_year %>%
+  ggplot(aes(x = factor(year), y = records)) +
+  geom_col(fill = my_blue, color = my_dark, linewidth = 0.3, width = 0.7) +
+  geom_text(aes(label = comma(records)), vjust = -0.25, size = 3.2) +
+  scale_y_continuous(labels = label_comma(), expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "Policy-year records", x = NULL, y = NULL) + base_theme +
+  theme(panel.grid.major.x = element_blank())
+
+p_exposure <- portfolio_year %>%
+  ggplot(aes(x = factor(year), y = exposure)) +
+  geom_col(fill = my_blue_light, color = my_dark, linewidth = 0.3, width = 0.7) +
+  geom_text(aes(label = comma(round(exposure, 0))), vjust = -0.25, size = 3.2) +
+  scale_y_continuous(labels = label_comma(), expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "Exposure years", x = NULL, y = NULL) + base_theme +
+  theme(panel.grid.major.x = element_blank())
+
+miss_tbl <- motor %>%
+  summarise(across(everything(), ~ mean(is.na(.x)))) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "missing_share") %>%
+  slice_max(missing_share, n = 8, with_ties = FALSE) %>%
+  mutate(variable = fct_reorder(variable, missing_share))
+
+p_missing <- miss_tbl %>%
+  ggplot(aes(x = variable, y = missing_share)) +
+  geom_col(fill = my_blue_dark, width = 0.65) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.08))) +
+  labs(title = "Highest missingness", x = NULL, y = NULL) + base_theme +
+  theme(panel.grid.major.y = element_blank())
+
+p_records | p_exposure | p_missing
+```
+
+::: obs
+- The portfolio contains **`r comma(portfolio_total$records)` policy-year records** and **`r comma(portfolio_total$insured)` insured IDs**.
+- Exposure is explicitly available, so comparisons should be made using **premium/exposure**, **claims/exposure**, and **incurred/exposure**, not raw totals alone.
+- **Implication:** the dataset supports credible portfolio-level visual analytics, provided segment comparisons are exposure-adjusted.
+:::
+
+::: {.notes}
+This slide checks whether the data structure supports the assignment purpose. The key issue is that policy records do not all represent identical exposure. Therefore, the analysis uses exposure-weighted measures. The missingness plot is included because variables with high missingness should not be used for strong causal claims without caution.
+:::
+
+## Analytical Framework — Separate volume, price, frequency, severity and tail risk
+
+<div class="three-card">
+<div class="content-card"><strong>Pricing adequacy</strong><br>Portfolio loss ratio = incurred / premium. This is the main profitability metric.</div>
+<div class="content-card"><strong>Claim frequency</strong><br>Claims / exposure identifies how often adverse events occur.</div>
+<div class="content-card"><strong>Claim severity</strong><br>Incurred / claim separates expensive claims from frequent claims.</div>
+</div>
+
+<div class="three-card">
+<div class="content-card"><strong>Exposure base</strong><br>Exposure prevents small segments from being overinterpreted.</div>
+<div class="content-card"><strong>Tail volatility</strong><br>ECDF and Pareto views reveal concentration not visible in averages.</div>
+<div class="content-card"><strong>Validation</strong><br>Tests and model diagnostics check whether visual differences persist statistically.</div>
+</div>
+
+::: obs
+The analysis deliberately avoids treating average loss ratio as a sufficient answer. Insurance profitability is skewed, zero-heavy, and segment-dependent.
+:::
+
+::: {.notes}
+The framework follows an actuarial logic. Loss ratio explains premium adequacy, but it does not tell whether the problem comes from claim frequency or severity. Exposure matters because small groups can look extreme simply by chance. The selected methods therefore combine distribution plots, concentration analysis, segment charts, heatmaps, and statistical checks.
+:::
+
+## Observation 2 — Premium and incurred cost move differently over time
+
+```{r}
+#| label: slide-indexed-trend
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+trend_index <- portfolio_year %>%
+  arrange(year) %>%
+  transmute(
+    year,
+    `Premium per exposure` = premium_rate / first(premium_rate) * 100,
+    `Incurred per exposure` = incurred_rate / first(incurred_rate) * 100,
+    `Claim frequency` = claim_frequency / first(claim_frequency) * 100,
+    `Loss ratio` = loss_ratio / first(loss_ratio) * 100
+  ) %>%
+  pivot_longer(-year, names_to = "metric", values_to = "index")
+
+trend_index %>%
+  ggplot(aes(x = year, y = index, color = metric, group = metric)) +
+  geom_hline(yintercept = 100, linetype = "dashed", color = "grey60") +
+  geom_line(linewidth = 1.1) +
+  geom_point(size = 2.8) +
+  geom_text(aes(label = round(index, 0)), vjust = -0.9, size = 3, show.legend = FALSE) +
+  scale_x_continuous(breaks = sort(unique(portfolio_year$year))) +
+  scale_y_continuous(labels = function(x) paste0(x, ""), expand = expansion(mult = c(0.08, 0.14))) +
+  scale_color_manual(values = c(my_blue_dark, my_blue, my_accent, "#7E57C2")) +
+  labs(title = "Indexed portfolio movement, base year = 100", x = NULL, y = "Index", color = NULL) +
+  base_theme
+```
+
+::: obs
+- Indexed trends show whether premium rate, incurred cost, claim frequency, and loss ratio move together or diverge.
+- **Implication:** if incurred cost rises faster than premium rate, portfolio growth is not automatically profitable.
+:::
+
+::: {.notes}
+This chart is chosen instead of four separate bar charts because indexing allows direct comparison of metrics with different units. It shows whether premium, claims, and loss ratio are moving in the same direction. For management, the key point is the relative movement, not the raw accounting totals.
+:::
+
+## Observation 3 — Loss experience is zero-heavy and strongly right-skewed
+
+```{r}
+#| label: slide-ecdf-distribution
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+p_ecdf_lr <- motor %>%
+  filter(is.finite(loss_ratio)) %>%
+  ggplot(aes(x = lr_cap_99)) +
+  stat_ecdf(geom = "step", color = my_blue_dark, linewidth = 1) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "ECDF of capped loss ratio", x = "Loss ratio, capped at 99th percentile", y = "Cumulative share") + base_theme
+
+p_ecdf_incurred <- motor %>%
+  ggplot(aes(x = log1p(total_incurred))) +
+  stat_ecdf(geom = "step", color = my_accent, linewidth = 1) +
+  labs(title = "ECDF of log incurred loss", x = "log(1 + incurred)", y = "Cumulative share") + base_theme
+
+zero_tbl <- tibble(
+  category = c("Zero claims", "Zero incurred loss"),
+  share = c(portfolio_total$zero_claim_share, portfolio_total$zero_loss_share)
+) %>%
+  ggplot(aes(x = category, y = share)) +
+  geom_col(fill = my_blue, color = my_dark, width = 0.58) +
+  geom_text(aes(label = percent(share, accuracy = 0.1)), vjust = -0.25, size = 3.5) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "Zero outcome share", x = NULL, y = NULL) + base_theme
+
+p_ecdf_lr | p_ecdf_incurred | zero_tbl
+```
+
+::: obs
+- ECDFs are more suitable than normal curves because most policy-years have no claims or no incurred loss.
+- **Implication:** averages alone are unstable; later segment comparisons should use capped distributions and portfolio-weighted summaries.
+:::
+
+::: {.notes}
+This slide uses ECDFs because they show the full cumulative distribution without assuming normality. Histograms would be dominated by the spike near zero, while ECDFs still show the long right tail. The zero-share bar makes the zero-heavy structure explicit.
+:::
+
+## Insight 1 — A small tail of policy-years contributes a large share of incurred losses
+
+```{r}
+#| label: slide-pareto-loss-concentration
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+pareto_loss <- motor %>%
+  filter(total_incurred > 0) %>%
+  arrange(desc(total_incurred)) %>%
+  mutate(
+    row_share = row_number() / n(),
+    loss_share = cumsum(total_incurred) / sum(total_incurred)
+  )
+
+cut_80 <- pareto_loss %>%
+  filter(loss_share >= 0.8) %>%
+  slice(1)
+
+pareto_loss %>%
+  ggplot(aes(x = row_share, y = loss_share)) +
+  geom_line(color = my_blue_dark, linewidth = 1.1) +
+  geom_hline(yintercept = 0.8, linetype = "dashed", color = "grey50") +
+  geom_vline(xintercept = cut_80$row_share, linetype = "dashed", color = my_accent) +
+  annotate("text", x = cut_80$row_share, y = 0.15, label = paste0("Top ", percent(cut_80$row_share, accuracy = 0.1), " of loss records"), angle = 90, hjust = 0, size = 3.5, color = my_accent) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Pareto concentration of incurred loss", x = "Cumulative share of positive-loss policy-years", y = "Cumulative share of incurred loss") +
+  base_theme
+```
+
+::: obs
+- The Pareto curve shows whether losses are broadly distributed or concentrated in a small adverse tail.
+- **Implication:** volatility management should focus on tail exposure, not only average segment performance.
+:::
+
+::: {.notes}
+A Pareto curve is used because insurance losses are often concentrated. This view is more decision-useful than a single mean or median because it tells management whether most losses come from many ordinary policies or a small tail of severe outcomes.
+:::
+
+## Insight 2 — Premium level does not fully explain incurred loss
+
+```{r}
+#| label: slide-premium-incurred-bin2d
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+motor %>%
+  filter(total_premium > 0, total_incurred >= 0) %>%
+  ggplot(aes(x = premium_log, y = incurred_log)) +
+  geom_bin2d(bins = 42) +
+  scale_fill_gradient(low = "#EAF2FB", high = my_blue_dark, labels = comma) +
+  geom_abline(intercept = 0, slope = 1, color = my_accent, linetype = "dashed", linewidth = 0.8) +
+  labs(
+    title = "Binned relationship between premium and incurred loss",
+    subtitle = "Dashed line indicates incurred = premium on log scale",
+    x = "log(1 + total premium)",
+    y = "log(1 + total incurred)",
+    fill = "Policy-years"
+  ) +
+  base_theme
+```
+
+::: obs
+- The binned density view avoids overplotting hundreds of thousands of policy-years.
+- **Implication:** pricing review should look for clusters above the break-even line, where incurred loss exceeds premium.
+:::
+
+::: {.notes}
+A normal scatterplot would be unreadable because the dataset is large. A binned heatmap preserves the relationship between premium and incurred loss while showing where records are concentrated. The dashed line provides an intuitive profitability reference.
+:::
+
+## Insight 3 — Product type remains a primary profitability separator
+
+```{r}
+#| label: slide-product-lollipop
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+product_display <- policy_type_summary %>%
+  filter(exposure >= 100) %>%
+  mutate(segment = fct_reorder(segment, loss_ratio))
+
+p_prod_lr <- product_display %>%
+  ggplot(aes(x = segment, y = loss_ratio)) +
+  geom_segment(aes(xend = segment, y = 0, yend = loss_ratio), color = my_blue_light, linewidth = 4) +
+  geom_point(color = my_blue_dark, size = 4) +
+  geom_text(aes(label = percent(loss_ratio, accuracy = 0.1)), hjust = -0.2, size = 3.4) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.22))) +
+  labs(title = "Portfolio loss ratio by product", x = NULL, y = NULL) + base_theme +
+  theme(panel.grid.major.y = element_blank())
+
+p_prod_mix <- product_display %>%
+  mutate(exposure_share = exposure / sum(exposure)) %>%
+  ggplot(aes(x = fct_reorder(segment, exposure_share), y = exposure_share)) +
+  geom_col(fill = my_blue, color = my_dark, width = 0.7) +
+  geom_text(aes(label = percent(exposure_share, accuracy = 0.1)), hjust = -0.1, size = 3.4) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.16))) +
+  labs(title = "Exposure share by product", x = NULL, y = NULL) + base_theme +
+  theme(panel.grid.major.y = element_blank())
+
+p_prod_lr | p_prod_mix
+```
+
+::: obs
+- Product comparisons use portfolio-weighted loss ratio and exposure share together.
+- **Implication:** a high loss ratio is more urgent when the product also carries meaningful exposure.
+:::
+
+::: {.notes}
+A lollipop plot is used instead of a bar chart to emphasise relative ranking without visually overloading the slide. Exposure share is shown beside the loss ratio because management should not treat a tiny product and a large product as equally important.
+:::
+
+## Insight 4 — Bonus score separates risk, but distributions overlap
+
+```{r}
+#| label: slide-bonus-violin
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+p_bonus_dist <- motor %>%
+  filter(is.finite(lr_cap_95), total_exposure > 0) %>%
+  ggplot(aes(x = bonus_score, y = lr_cap_95, fill = bonus_score)) +
+  geom_violin(alpha = 0.55, color = my_dark, linewidth = 0.25, trim = TRUE, show.legend = FALSE) +
+  geom_boxplot(width = 0.18, outlier.shape = NA, alpha = 0.85, show.legend = FALSE) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  scale_fill_manual(values = c(my_blue_light, my_blue, my_blue_dark, "#9EC1E6")) +
+  labs(title = "Capped loss-ratio distribution by bonus score", x = NULL, y = "Loss ratio, capped at 95th percentile") + base_theme
+
+p_bonus_freq <- bonus_summary %>%
+  ggplot(aes(x = fct_reorder(segment, claim_frequency), y = claim_frequency)) +
+  geom_col(fill = my_blue, color = my_dark, width = 0.65) +
+  geom_text(aes(label = number(claim_frequency, accuracy = 0.01)), hjust = -0.1, size = 3.4) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.18))) +
+  labs(title = "Claim frequency by bonus score", x = NULL, y = "Claims / exposure") + base_theme +
+  theme(panel.grid.major.y = element_blank())
+
+p_bonus_dist | p_bonus_freq
+```
+
+::: obs
+- Violin + boxplot shows both distribution shape and median/IQR, rather than hiding overlap behind one average.
+- **Implication:** bonus score is useful, but it should be combined with other underwriting variables.
+:::
+
+::: {.notes}
+This chart was selected because a pure bar chart would imply each bonus group is homogeneous. The violin layer shows distribution spread, while the boxplot gives a familiar summary. The paired claim-frequency chart helps separate how often claims happen from how large the resulting losses are.
+:::
+
+## Insight 5 — Payment and business context change risk mix
+
+```{r}
+#| label: slide-payment-business-context
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+pay_business <- motor %>%
+  filter(total_exposure > 0) %>%
+  group_by(payment_frequency, business_type) %>%
+  summarise(
+    exposure = sum(total_exposure, na.rm = TRUE),
+    premium = sum(total_premium, na.rm = TRUE),
+    incurred = sum(total_incurred, na.rm = TRUE),
+    claims = sum(total_claims, na.rm = TRUE),
+    loss_ratio = incurred / premium,
+    claim_frequency = claims / exposure,
+    .groups = "drop"
+  )
+
+p_pay_heat <- pay_business %>%
+  ggplot(aes(x = payment_frequency, y = business_type, fill = loss_ratio)) +
+  geom_tile(color = "white", linewidth = 1) +
+  geom_text(aes(label = percent(loss_ratio, accuracy = 0.1)), size = 4) +
+  scale_fill_gradient(low = "#D7E6F5", high = my_blue_dark, labels = percent_format(accuracy = 1)) +
+  labs(title = "Loss ratio by payment × business type", x = "Payment frequency", y = "Business type", fill = "Loss ratio") + base_theme +
+  theme(panel.grid = element_blank())
+
+p_pay_freq <- pay_business %>%
+  ggplot(aes(x = payment_frequency, y = claim_frequency, group = business_type, color = business_type)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  scale_color_manual(values = c(my_blue_dark, my_accent, my_blue)) +
+  labs(title = "Claim frequency across payment modes", x = "Payment frequency", y = "Claims / exposure", color = "Business type") + base_theme
+
+p_pay_heat | p_pay_freq
+```
+
+::: obs
+- The heatmap shows combined effects rather than evaluating payment frequency alone.
+- **Implication:** payment behaviour should be interpreted together with business context before repricing.
+:::
+
+::: {.notes}
+A two-way heatmap is selected because payment frequency and business type may interact. This is better than separate one-variable bar charts, which can hide combined risk pockets. The line chart then shows whether differences are driven by claim frequency.
+:::
+
+## Insight 6 — Vehicle brand outliers require exposure-aware screening
+
+```{r}
+#| label: slide-brand-funnel
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+brand_funnel <- brand_summary %>%
+  filter(exposure >= 50, is.finite(loss_ratio)) %>%
+  mutate(
+    expected_lr = portfolio_total$loss_ratio,
+    se = sqrt(pmax(expected_lr * (1 - pmin(expected_lr, 0.99)), 0.0001) / exposure),
+    upper_band = expected_lr + 1.96 * se,
+    lower_band = pmax(expected_lr - 1.96 * se, 0),
+    outlier = loss_ratio > upper_band
+  )
+
+brand_funnel %>%
+  ggplot(aes(x = exposure, y = loss_ratio)) +
+  geom_point(aes(color = outlier), size = 2.7, alpha = 0.82) +
+  geom_hline(yintercept = portfolio_total$loss_ratio, linetype = "dashed", color = my_dark) +
+  geom_line(aes(y = upper_band), color = my_accent, linewidth = 0.9) +
+  geom_line(aes(y = lower_band), color = my_accent, linewidth = 0.9) +
+  geom_text(
+    data = brand_funnel %>% filter(outlier) %>% slice_max(loss_ratio, n = 6),
+    aes(label = segment),
+    size = 3,
+    nudge_y = 0.03,
+    check_overlap = TRUE,
+    show.legend = FALSE
+  ) +
+  scale_x_log10(labels = comma) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  scale_color_manual(values = c("FALSE" = my_blue, "TRUE" = "#D62728")) +
+  labs(title = "Funnel plot of vehicle-brand loss ratio", subtitle = "Outliers are judged relative to exposure size", x = "Brand exposure, log scale", y = "Portfolio loss ratio", color = "Above band") +
+  base_theme
+```
+
+::: obs
+- Funnel plot avoids overreacting to small brands with unstable loss ratios.
+- **Implication:** brands above the exposure-adjusted band deserve deeper underwriting review.
+:::
+
+::: {.notes}
+This chart is chosen because brand groups have unequal exposure. A simple ranked bar chart would overstate small-exposure outliers. A funnel plot is more defensible because it compares segment loss ratio against exposure-adjusted tolerance bands.
+:::
+
+## Insight 7 — Vehicle value and power create interaction-based risk pockets
+
+```{r}
+#| label: slide-vehicle-value-power-heatmap
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+vehicle_heat <- motor %>%
+  filter(!is.na(vehicle_value_band), !is.na(power_band), total_exposure > 0) %>%
+  group_by(vehicle_value_band, power_band) %>%
+  summarise(
+    exposure = sum(total_exposure, na.rm = TRUE),
+    premium = sum(total_premium, na.rm = TRUE),
+    incurred = sum(total_incurred, na.rm = TRUE),
+    loss_ratio = incurred / premium,
+    .groups = "drop"
+  ) %>%
+  filter(exposure >= 100)
+
+vehicle_heat %>%
+  ggplot(aes(x = vehicle_value_band, y = power_band, fill = loss_ratio)) +
+  geom_tile(color = "white", linewidth = 1) +
+  geom_text(aes(label = percent(loss_ratio, accuracy = 1)), size = 4) +
+  scale_fill_gradient(low = "#D7E6F5", high = my_blue_dark, labels = percent_format(accuracy = 1)) +
+  labs(title = "Loss ratio by vehicle value × power-to-weight", subtitle = "Cells with fewer than 100 exposure years excluded", x = "Vehicle value band", y = "Power-to-weight band", fill = "Loss ratio") +
+  base_theme +
+  theme(panel.grid = element_blank())
+```
+
+::: obs
+- Interaction heatmap shows risk pockets that one-variable charts cannot identify.
+- **Implication:** vehicle pricing should monitor combinations, not only independent variables.
+:::
+
+::: {.notes}
+The heatmap is selected because the management question is about combinations of characteristics. Vehicle value or power alone may not reveal the highest-risk cells. Filtering out low-exposure cells avoids giving too much attention to unstable small groups.
+:::
+
+## Method Add-on — Distribution shapes differ by product and bonus group
+
+```{r}
+#| label: slide-distribution-addon
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+p_prod_density <- motor %>%
+  filter(is.finite(lr_cap_95), total_exposure > 0) %>%
+  ggplot(aes(x = lr_cap_95, color = policy_type)) +
+  geom_density(linewidth = 1, adjust = 1.1) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Density of capped loss ratio by product", x = "Loss ratio, capped at 95th percentile", y = "Density", color = "Product") +
+  base_theme
+
+p_bonus_quantile <- motor %>%
+  filter(is.finite(lr_cap_95), total_exposure > 0) %>%
+  group_by(bonus_score) %>%
+  summarise(
+    q25 = quantile(lr_cap_95, 0.25, na.rm = TRUE),
+    median = median(lr_cap_95, na.rm = TRUE),
+    q75 = quantile(lr_cap_95, 0.75, na.rm = TRUE),
+    q90 = quantile(lr_cap_95, 0.90, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(-bonus_score, names_to = "quantile", values_to = "loss_ratio") %>%
+  mutate(quantile = factor(quantile, levels = c("q25", "median", "q75", "q90"))) %>%
+  ggplot(aes(x = quantile, y = loss_ratio, group = bonus_score, color = bonus_score)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2.8) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Quantile profile by bonus score", x = NULL, y = "Capped loss ratio", color = "Bonus") +
+  base_theme
+
+p_prod_density | p_bonus_quantile
+```
+
+::: obs
+- Density and quantile-profile views expose distribution shape, not only central tendency.
+- **Implication:** the best pricing signal is not only which group has the highest mean, but which group has a thicker adverse tail.
+:::
+
+::: {.notes}
+This is the advanced visual analytics add-on. It uses distribution-shape diagnostics rather than another simple bar chart. The density chart compares product-level shape, while the quantile profile shows how groups diverge across the distribution, including the upper tail.
+:::
+
+## Statistical Validation — Visual differences are checked formally
+
+```{r}
+#| label: slide-statistical-validation
+#| fig-width: 12.8
+#| fig-height: 4.8
+#| out-width: "100%"
+
+kw_test <- function(var) {
+  test_data <- motor %>% filter(is.finite(lr_cap_95), !is.na(.data[[var]]))
+  broom::tidy(kruskal.test(lr_cap_95 ~ .data[[var]], data = test_data)) %>%
+    mutate(variable = var)
+}
+
+kw_tbl <- map_dfr(c("policy_type", "bonus_score", "payment_frequency", "policy_status", "business_type", "fuel_type", "circulation_area"), kw_test) %>%
+  mutate(
+    variable = str_replace_all(variable, "_", " ") %>% str_to_title(),
+    neg_log10_p = -log10(p.value)
+  )
+
+p_kw <- kw_tbl %>%
+  ggplot(aes(x = fct_reorder(variable, neg_log10_p), y = neg_log10_p)) +
+  geom_col(fill = my_blue_dark, width = 0.7) +
+  coord_flip() +
+  labs(title = "Kruskal-Wallis validation of capped loss-ratio differences", x = NULL, y = "-log10(p-value)") +
+  base_theme +
+  theme(panel.grid.major.y = element_blank())
+
+p_count <- motor %>%
+  mutate(has_claim = total_claims > 0) %>%
+  count(policy_type, has_claim) %>%
+  group_by(policy_type) %>%
+  mutate(share = n / sum(n)) %>%
+  filter(has_claim) %>%
+  ggplot(aes(x = fct_reorder(policy_type, share), y = share)) +
+  geom_col(fill = my_blue, color = my_dark, width = 0.7) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(title = "Claim-occurrence share by product", x = NULL, y = "Share with ≥1 claim") +
+  base_theme +
+  theme(panel.grid.major.y = element_blank())
+
+p_kw | p_count
+```
+
+::: obs
+- Non-parametric validation is used because capped loss ratio is still skewed and non-normal.
+- **Implication:** visual findings are not presented as decoration; they are checked against statistical evidence.
+:::
+
+::: {.notes}
+The Kruskal-Wallis test is used because the outcome distribution is skewed and has many zeros. The purpose is not to replace visual analytics, but to check whether the visual segment differences are statistically visible. A claim-occurrence chart adds a frequency-side validation.
+:::
+
+## Final Recommendations
+
+<div class="content-card"><strong>1. Price by exposure-adjusted loss ratio, not raw incurred totals.</strong><br>Loss ratio is the main portfolio profitability metric, but it must be interpreted with exposure.</div>
+
+<div class="content-card"><strong>2. Separate frequency risk from severity risk.</strong><br>High claim frequency and high incurred severity point to different underwriting actions.</div>
+
+<div class="content-card"><strong>3. Prioritise product and bonus-score review.</strong><br>These variables create visible profitability separation and should enter the first pricing shortlist.</div>
+
+<div class="content-card"><strong>4. Use funnel screening before acting on small segments.</strong><br>Extreme loss ratios in low-exposure brands can be noise; funnel plots provide a more defensible signal.</div>
+
+<div class="content-card"><strong>5. Monitor interaction pockets.</strong><br>Vehicle value × power-to-weight combinations reveal risk pockets that single-variable summaries can miss.</div>
+
+::: obs
+**Overall conclusion:** profitability pressure is not random. It is concentrated in observable product, bonus, payment, vehicle, and brand-risk structures. The next step should be actuarial modelling, but the visual analytics already identifies where management attention should begin.
+:::
+
+::: {.notes}
+The recommendations translate the visual analysis into decision rules. The strongest practical conclusion is that management should not use one overall loss ratio alone. It should separate pricing adequacy, frequency, severity, exposure size, and interaction pockets before repricing or underwriting intervention.
+:::
