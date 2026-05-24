@@ -720,8 +720,11 @@ This is the advanced visual analytics add-on. It uses distribution-shape diagnos
 #| out-width: "100%"
 
 kw_test <- function(var) {
-  test_data <- motor %>% filter(is.finite(lr_cap_95), !is.na(.data[[var]]))
-  broom::tidy(kruskal.test(lr_cap_95 ~ .data[[var]], data = test_data)) %>%
+  test_data <- motor %>%
+    filter(is.finite(lr_cap_95), !is.na(.data[[var]])) %>%
+    select(lr_cap_95, group_var = all_of(var))
+
+  broom::tidy(kruskal.test(lr_cap_95 ~ group_var, data = test_data)) %>%
     mutate(variable = var)
 }
 
