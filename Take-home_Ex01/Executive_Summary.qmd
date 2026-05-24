@@ -12,7 +12,6 @@ execute:
   message: false
 ---
 
-
 ```{r}
 #| label: setup
 #| include: false
@@ -69,9 +68,8 @@ segment_summary <- function(df, var) {
 #| label: import-clean-data
 #| include: false
 
-data_dir <- "data"
-csv_file <- list.files(data_dir, pattern = "\\.csv$", full.names = TRUE)[1]
-xlsx_file <- list.files(data_dir, pattern = "\\.xlsx$", full.names = TRUE)[1]
+csv_file <- "Dataset of motor insurance portfolio.csv"
+xlsx_file <- "Descriptive of variables.xlsx"
 
 motor_raw <- readr::read_delim(
   csv_file,
@@ -184,16 +182,23 @@ portfolio_total <- motor %>%
 
 ## Cover {.cover-slide}
 
-<div class="cover-container">
-  <div class="cover-title">Motor Insurance Portfolio Profitability and Volatility</div>
-  <div class="cover-subtitle">ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery</div>
-  <div class="cover-meta">Cheng Yuanyuan · 23 May 2026</div>
-</div>
-
-::: {.notes}
-This executive summary uses the same motor insurance portfolio data, but applies a different visual analytics path from the earlier version. The focus is on distribution, concentration, pricing adequacy, and exposure-adjusted segment comparison. The slide deck is designed to support management decisions rather than only describe variables.
+:::::: cover-container
+::: cover-title
+Motor Insurance Portfolio Profitability and Volatility
 :::
 
+::: cover-subtitle
+ISSS608 Take-home Exercise 1 · Visual Analytics for Data Discovery
+:::
+
+::: cover-meta
+Cheng Yuanyuan · 23 May 2026
+:::
+::::::
+
+::: notes
+This executive summary uses the same motor insurance portfolio data, but applies a different visual analytics path from the earlier version. The focus is on distribution, concentration, pricing adequacy, and exposure-adjusted segment comparison. The slide deck is designed to support management decisions rather than only describe variables.
+:::
 
 ## Observation 1 — The dataset is large enough for exposure-adjusted portfolio analysis
 
@@ -237,34 +242,50 @@ p_records | p_exposure | p_missing
 ```
 
 ::: obs
-- The portfolio contains **`r comma(portfolio_total$records)` policy-year records** and **`r comma(portfolio_total$insured)` insured IDs**.
-- Exposure is explicitly available, so comparisons should be made using **premium/exposure**, **claims/exposure**, and **incurred/exposure**, not raw totals alone.
-- **Implication:** the dataset supports credible portfolio-level visual analytics, provided segment comparisons are exposure-adjusted.
+-   The portfolio contains **`r comma(portfolio_total$records)` policy-year records** and **`r comma(portfolio_total$insured)` insured IDs**.
+-   Exposure is explicitly available, so comparisons should be made using **premium/exposure**, **claims/exposure**, and **incurred/exposure**, not raw totals alone.
+-   **Implication:** the dataset supports credible portfolio-level visual analytics, provided segment comparisons are exposure-adjusted.
 :::
 
-::: {.notes}
+::: notes
 This slide checks whether the data structure supports the assignment purpose. The key issue is that policy records do not all represent identical exposure. Therefore, the analysis uses exposure-weighted measures. The missingness plot is included because variables with high missingness should not be used for strong causal claims without caution.
 :::
 
 ## Analytical Framework — Separate volume, price, frequency, severity and tail risk
 
-<div class="three-card">
-<div class="content-card"><strong>Pricing adequacy</strong><br>Portfolio loss ratio = incurred / premium. This is the main profitability metric.</div>
-<div class="content-card"><strong>Claim frequency</strong><br>Claims / exposure identifies how often adverse events occur.</div>
-<div class="content-card"><strong>Claim severity</strong><br>Incurred / claim separates expensive claims from frequent claims.</div>
-</div>
+:::::: three-card
+::: content-card
+<strong>Pricing adequacy</strong><br>Portfolio loss ratio = incurred / premium. This is the main profitability metric.
+:::
 
-<div class="three-card">
-<div class="content-card"><strong>Exposure base</strong><br>Exposure prevents small segments from being overinterpreted.</div>
-<div class="content-card"><strong>Tail volatility</strong><br>ECDF and Pareto views reveal concentration not visible in averages.</div>
-<div class="content-card"><strong>Validation</strong><br>Tests and model diagnostics check whether visual differences persist statistically.</div>
-</div>
+::: content-card
+<strong>Claim frequency</strong><br>Claims / exposure identifies how often adverse events occur.
+:::
+
+::: content-card
+<strong>Claim severity</strong><br>Incurred / claim separates expensive claims from frequent claims.
+:::
+::::::
+
+:::::: three-card
+::: content-card
+<strong>Exposure base</strong><br>Exposure prevents small segments from being overinterpreted.
+:::
+
+::: content-card
+<strong>Tail volatility</strong><br>ECDF and Pareto views reveal concentration not visible in averages.
+:::
+
+::: content-card
+<strong>Validation</strong><br>Tests and model diagnostics check whether visual differences persist statistically.
+:::
+::::::
 
 ::: obs
 The analysis deliberately avoids treating average loss ratio as a sufficient answer. Insurance profitability is skewed, zero-heavy, and segment-dependent.
 :::
 
-::: {.notes}
+::: notes
 The framework follows an actuarial logic. Loss ratio explains premium adequacy, but it does not tell whether the problem comes from claim frequency or severity. Exposure matters because small groups can look extreme simply by chance. The selected methods therefore combine distribution plots, concentration analysis, segment charts, heatmaps, and statistical checks.
 :::
 
@@ -301,11 +322,11 @@ trend_index %>%
 ```
 
 ::: obs
-- Indexed trends show whether premium rate, incurred cost, claim frequency, and loss ratio move together or diverge.
-- **Implication:** if incurred cost rises faster than premium rate, portfolio growth is not automatically profitable.
+-   Indexed trends show whether premium rate, incurred cost, claim frequency, and loss ratio move together or diverge.
+-   **Implication:** if incurred cost rises faster than premium rate, portfolio growth is not automatically profitable.
 :::
 
-::: {.notes}
+::: notes
 This chart is chosen instead of four separate bar charts because indexing allows direct comparison of metrics with different units. It shows whether premium, claims, and loss ratio are moving in the same direction. For management, the key point is the relative movement, not the raw accounting totals.
 :::
 
@@ -344,11 +365,11 @@ p_ecdf_lr | p_ecdf_incurred | zero_tbl
 ```
 
 ::: obs
-- ECDFs are more suitable than normal curves because most policy-years have no claims or no incurred loss.
-- **Implication:** averages alone are unstable; later segment comparisons should use capped distributions and portfolio-weighted summaries.
+-   ECDFs are more suitable than normal curves because most policy-years have no claims or no incurred loss.
+-   **Implication:** averages alone are unstable; later segment comparisons should use capped distributions and portfolio-weighted summaries.
 :::
 
-::: {.notes}
+::: notes
 This slide uses ECDFs because they show the full cumulative distribution without assuming normality. Histograms would be dominated by the spike near zero, while ECDFs still show the long right tail. The zero-share bar makes the zero-heavy structure explicit.
 :::
 
@@ -385,11 +406,11 @@ pareto_loss %>%
 ```
 
 ::: obs
-- The Pareto curve shows whether losses are broadly distributed or concentrated in a small adverse tail.
-- **Implication:** volatility management should focus on tail exposure, not only average segment performance.
+-   The Pareto curve shows whether losses are broadly distributed or concentrated in a small adverse tail.
+-   **Implication:** volatility management should focus on tail exposure, not only average segment performance.
 :::
 
-::: {.notes}
+::: notes
 A Pareto curve is used because insurance losses are often concentrated. This view is more decision-useful than a single mean or median because it tells management whether most losses come from many ordinary policies or a small tail of severe outcomes.
 :::
 
@@ -418,11 +439,11 @@ motor %>%
 ```
 
 ::: obs
-- The binned density view avoids overplotting hundreds of thousands of policy-years.
-- **Implication:** pricing review should look for clusters above the break-even line, where incurred loss exceeds premium.
+-   The binned density view avoids overplotting hundreds of thousands of policy-years.
+-   **Implication:** pricing review should look for clusters above the break-even line, where incurred loss exceeds premium.
 :::
 
-::: {.notes}
+::: notes
 A normal scatterplot would be unreadable because the dataset is large. A binned heatmap preserves the relationship between premium and incurred loss while showing where records are concentrated. The dashed line provides an intuitive profitability reference.
 :::
 
@@ -462,11 +483,11 @@ p_prod_lr | p_prod_mix
 ```
 
 ::: obs
-- Product comparisons use portfolio-weighted loss ratio and exposure share together.
-- **Implication:** a high loss ratio is more urgent when the product also carries meaningful exposure.
+-   Product comparisons use portfolio-weighted loss ratio and exposure share together.
+-   **Implication:** a high loss ratio is more urgent when the product also carries meaningful exposure.
 :::
 
-::: {.notes}
+::: notes
 A lollipop plot is used instead of a bar chart to emphasise relative ranking without visually overloading the slide. Exposure share is shown beside the loss ratio because management should not treat a tiny product and a large product as equally important.
 :::
 
@@ -500,11 +521,11 @@ p_bonus_dist | p_bonus_freq
 ```
 
 ::: obs
-- Violin + boxplot shows both distribution shape and median/IQR, rather than hiding overlap behind one average.
-- **Implication:** bonus score is useful, but it should be combined with other underwriting variables.
+-   Violin + boxplot shows both distribution shape and median/IQR, rather than hiding overlap behind one average.
+-   **Implication:** bonus score is useful, but it should be combined with other underwriting variables.
 :::
 
-::: {.notes}
+::: notes
 This chart was selected because a pure bar chart would imply each bonus group is homogeneous. The violin layer shows distribution spread, while the boxplot gives a familiar summary. The paired claim-frequency chart helps separate how often claims happen from how large the resulting losses are.
 :::
 
@@ -548,11 +569,11 @@ p_pay_heat | p_pay_freq
 ```
 
 ::: obs
-- The heatmap shows combined effects rather than evaluating payment frequency alone.
-- **Implication:** payment behaviour should be interpreted together with business context before repricing.
+-   The heatmap shows combined effects rather than evaluating payment frequency alone.
+-   **Implication:** payment behaviour should be interpreted together with business context before repricing.
 :::
 
-::: {.notes}
+::: notes
 A two-way heatmap is selected because payment frequency and business type may interact. This is better than separate one-variable bar charts, which can hide combined risk pockets. The line chart then shows whether differences are driven by claim frequency.
 :::
 
@@ -596,11 +617,11 @@ brand_funnel %>%
 ```
 
 ::: obs
-- Funnel plot avoids overreacting to small brands with unstable loss ratios.
-- **Implication:** brands above the exposure-adjusted band deserve deeper underwriting review.
+-   Funnel plot avoids overreacting to small brands with unstable loss ratios.
+-   **Implication:** brands above the exposure-adjusted band deserve deeper underwriting review.
 :::
 
-::: {.notes}
+::: notes
 This chart is chosen because brand groups have unequal exposure. A simple ranked bar chart would overstate small-exposure outliers. A funnel plot is more defensible because it compares segment loss ratio against exposure-adjusted tolerance bands.
 :::
 
@@ -635,11 +656,11 @@ vehicle_heat %>%
 ```
 
 ::: obs
-- Interaction heatmap shows risk pockets that one-variable charts cannot identify.
-- **Implication:** vehicle pricing should monitor combinations, not only independent variables.
+-   Interaction heatmap shows risk pockets that one-variable charts cannot identify.
+-   **Implication:** vehicle pricing should monitor combinations, not only independent variables.
 :::
 
-::: {.notes}
+::: notes
 The heatmap is selected because the management question is about combinations of characteristics. Vehicle value or power alone may not reveal the highest-risk cells. Filtering out low-exposure cells avoids giving too much attention to unstable small groups.
 :::
 
@@ -682,11 +703,11 @@ p_prod_density | p_bonus_quantile
 ```
 
 ::: obs
-- Density and quantile-profile views expose distribution shape, not only central tendency.
-- **Implication:** the best pricing signal is not only which group has the highest mean, but which group has a thicker adverse tail.
+-   Density and quantile-profile views expose distribution shape, not only central tendency.
+-   **Implication:** the best pricing signal is not only which group has the highest mean, but which group has a thicker adverse tail.
 :::
 
-::: {.notes}
+::: notes
 This is the advanced visual analytics add-on. It uses distribution-shape diagnostics rather than another simple bar chart. The density chart compares product-level shape, while the quantile profile shows how groups diverge across the distribution, including the upper tail.
 :::
 
@@ -736,30 +757,40 @@ p_kw | p_count
 ```
 
 ::: obs
-- Non-parametric validation is used because capped loss ratio is still skewed and non-normal.
-- **Implication:** visual findings are not presented as decoration; they are checked against statistical evidence.
+-   Non-parametric validation is used because capped loss ratio is still skewed and non-normal.
+-   **Implication:** visual findings are not presented as decoration; they are checked against statistical evidence.
 :::
 
-::: {.notes}
+::: notes
 The Kruskal-Wallis test is used because the outcome distribution is skewed and has many zeros. The purpose is not to replace visual analytics, but to check whether the visual segment differences are statistically visible. A claim-occurrence chart adds a frequency-side validation.
 :::
 
 ## Final Recommendations
 
-<div class="content-card"><strong>1. Price by exposure-adjusted loss ratio, not raw incurred totals.</strong><br>Loss ratio is the main portfolio profitability metric, but it must be interpreted with exposure.</div>
+::: content-card
+<strong>1. Price by exposure-adjusted loss ratio, not raw incurred totals.</strong><br>Loss ratio is the main portfolio profitability metric, but it must be interpreted with exposure.
+:::
 
-<div class="content-card"><strong>2. Separate frequency risk from severity risk.</strong><br>High claim frequency and high incurred severity point to different underwriting actions.</div>
+::: content-card
+<strong>2. Separate frequency risk from severity risk.</strong><br>High claim frequency and high incurred severity point to different underwriting actions.
+:::
 
-<div class="content-card"><strong>3. Prioritise product and bonus-score review.</strong><br>These variables create visible profitability separation and should enter the first pricing shortlist.</div>
+::: content-card
+<strong>3. Prioritise product and bonus-score review.</strong><br>These variables create visible profitability separation and should enter the first pricing shortlist.
+:::
 
-<div class="content-card"><strong>4. Use funnel screening before acting on small segments.</strong><br>Extreme loss ratios in low-exposure brands can be noise; funnel plots provide a more defensible signal.</div>
+::: content-card
+<strong>4. Use funnel screening before acting on small segments.</strong><br>Extreme loss ratios in low-exposure brands can be noise; funnel plots provide a more defensible signal.
+:::
 
-<div class="content-card"><strong>5. Monitor interaction pockets.</strong><br>Vehicle value × power-to-weight combinations reveal risk pockets that single-variable summaries can miss.</div>
+::: content-card
+<strong>5. Monitor interaction pockets.</strong><br>Vehicle value × power-to-weight combinations reveal risk pockets that single-variable summaries can miss.
+:::
 
 ::: obs
 **Overall conclusion:** profitability pressure is not random. It is concentrated in observable product, bonus, payment, vehicle, and brand-risk structures. The next step should be actuarial modelling, but the visual analytics already identifies where management attention should begin.
 :::
 
-::: {.notes}
+::: notes
 The recommendations translate the visual analysis into decision rules. The strongest practical conclusion is that management should not use one overall loss ratio alone. It should separate pricing adequacy, frequency, severity, exposure size, and interaction pockets before repricing or underwriting intervention.
 :::
