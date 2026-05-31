@@ -29,7 +29,8 @@ website:
             href: Hands-on_Ex/Hands-on_Ex06b/Hands-on_Ex06b.html
           - text: "Hands-on Exercise 6c"
             href: Hands-on_Ex/Hands-on_Ex06c/Hands-on_Ex06c.html
-            
+          - text: "Hands-on Exercise 06d"
+            href: Hands-on_Ex/Hands-on_Ex06d/Hands-on_Ex06d.html
     
       - text: "Take-home Exercise"
         menu:
