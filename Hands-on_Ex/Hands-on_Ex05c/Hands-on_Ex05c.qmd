@@ -60,7 +60,7 @@ A point estimate is a single summary value. For example, the mean Maths score of
 
 Uncertainty can be shown using standard error, confidence interval or other interval-based summaries.
 
-::: {.callout-important}
+::: callout-important
 Do not confuse uncertainty of a point estimate with the spread of the raw data. Standard deviation describes how spread out the observations are, while standard error describes how uncertain the estimated mean is.
 :::
 
@@ -79,8 +79,7 @@ my_sum <- exam %>%
   )
 ```
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The table
 
 ```{r}
@@ -103,7 +102,6 @@ my_sum <- exam %>%
 
 knitr::kable(my_sum, format = "html", digits = 2)
 ```
-
 :::
 
 The table gives the statistical foundation for the plots that follow. The value `se` will be used to draw uncertainty intervals around each group mean.
@@ -116,8 +114,7 @@ The first method is to draw standard error bars around the mean Maths score for 
 
 This gives a compact view of how much uncertainty surrounds each mean estimate.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -187,7 +184,6 @@ ggplot(my_sum) +
     panel.grid.minor = element_blank()
   )
 ```
-
 :::
 
 The point shows the mean Maths score for each race group. The vertical line shows the uncertainty around that estimate. A longer error bar means the estimated mean is less precise.
@@ -200,8 +196,7 @@ Instead of using only standard error, we can show a 95% confidence interval. A c
 
 This interval is wider than the standard error bar because it is intended to show a plausible range for the population mean.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -271,7 +266,6 @@ ggplot(my_sum) +
     panel.grid.minor = element_blank()
   )
 ```
-
 :::
 
 The confidence interval makes the uncertainty more visible. If one group has a small sample size, its interval may become much wider even if the mean looks high or low.
@@ -284,8 +278,7 @@ A 99% confidence interval is used here:
 
 `mean ± 2.58 × se`
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -423,7 +416,6 @@ bscols(
   )
 )
 ```
-
 :::
 
 This interactive version is useful because the viewer can inspect the mean, sample size and confidence interval directly. The table also gives the exact values behind the visualisation.
@@ -438,8 +430,7 @@ In this section, Maths score is compared across race groups using several `ggdis
 
 The function `stat_pointinterval()` creates a point and interval plot. By default, it summarises the distribution and displays interval estimates.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -489,7 +480,6 @@ exam %>%
     panel.grid.minor = element_blank()
   )
 ```
-
 :::
 
 This plot is cleaner than a manually constructed error bar chart because the interval summary is handled directly by `ggdist`.
@@ -498,8 +488,7 @@ This plot is cleaner than a manually constructed error bar chart because the int
 
 We can also change the summary point from mean to median. This is useful when the distribution may be skewed or when we want a more robust measure of central tendency.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -555,7 +544,6 @@ exam %>%
     panel.grid.minor = element_blank()
   )
 ```
-
 :::
 
 Using median instead of mean gives a slightly different interpretation. It focuses on the middle student in each group rather than the arithmetic average.
@@ -564,8 +552,7 @@ Using median instead of mean gives a slightly different interpretation. It focus
 
 A useful extension is to show more than one interval width in the same chart. Here, the chart shows both 95% and 99% intervals.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -619,7 +606,6 @@ exam %>%
     panel.grid.minor = element_blank()
   )
 ```
-
 :::
 
 The 99% interval is wider than the 95% interval because it covers a broader range of plausible values. This is the trade-off between confidence level and precision.
@@ -628,8 +614,7 @@ The 99% interval is wider than the 95% interval because it covers a broader rang
 
 The function `stat_gradientinterval()` uses gradient colour to show distribution and uncertainty together. This gives the viewer a stronger visual cue about where the values are more concentrated.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -679,7 +664,6 @@ exam %>%
     panel.grid.minor = element_blank()
   )
 ```
-
 :::
 
 This plot is more visually expressive than a simple error bar. It helps communicate that uncertainty is not just a hard boundary, but a range with different levels of density.
@@ -698,7 +682,7 @@ The original method uses the `ungeviz` package. If it has not been installed bef
 devtools::install_github("wilkelab/ungeviz")
 ```
 
-::: {.callout-note}
+::: callout-note
 This installation line is set to `eval=FALSE`, so it will not run during rendering. This prevents the website from failing if the package has not been installed yet.
 :::
 
@@ -752,8 +736,7 @@ Because animation and GitHub-based package installation may be unstable during w
 
 As a small extension, we can create a safer static version that shows the raw Maths scores together with the group mean. This does not replace HOPs, but it gives a clear and render-friendly way to show both individual variation and point estimates.
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ## The plot
 
 ```{r}
@@ -833,7 +816,6 @@ ggplot(exam,
     panel.grid.minor = element_blank()
   )
 ```
-
 :::
 
 This extension is intentionally simple. It makes the difference between sample variation and uncertainty around the mean easier to see.

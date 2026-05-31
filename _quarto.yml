@@ -31,7 +31,9 @@ website:
             href: Hands-on_Ex/Hands-on_Ex06c/Hands-on_Ex06c.html
           - text: "Hands-on Exercise 06d"
             href: Hands-on_Ex/Hands-on_Ex06d/Hands-on_Ex06d.html
-    
+          - text: "Hands-on Exercise 6e"
+            href: Hands-on_Ex/Hands-on_Ex06e/Hands-on_Ex06e.html
+            
       - text: "Take-home Exercise"
         menu:
           - text: "Take-home Exercise 1 - Executive Summary"
