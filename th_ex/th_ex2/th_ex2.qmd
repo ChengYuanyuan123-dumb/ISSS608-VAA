@@ -1,0 +1,416 @@
+---
+title: "Investigating the TenantThread Embargo Breach"
+author: "Cheng Yuanyuan"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    code-tools: true
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+## Executive Summary
+
+This report investigates the premature release of embargoed Project HarborCrest merger information in VAST Challenge 2026 Mini-Challenge 1. Based on the communication logs, the breach appears more consistent with a system-level communication control failure than a clearly coordinated deliberate leak.
+
+The evidence shows three major patterns. First, communication volume increased substantially in later simulation rounds, indicating escalation and coordination pressure. Second, embargo-related keywords such as HarborCrest, merger, embargo, FleX, Judge, and public release terms became concentrated in later rounds. Third, high-risk messages were not evenly distributed across all agents; they were concentrated among specific roles and channels.
+
+The main implication is that the breach was likely enabled by repeated exposure to sensitive information and weak containment between internal deliberation and outward-facing communication channels. The data shows involvement and exposure, but it does not provide enough evidence to prove malicious intent.
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(jsonlite)
+library(lubridate)
+library(stringr)
+```
+```{r}
+#| label: data-preparation
+
+json_path <- "data/VAST_Challenge_2026_MC1/MC1_final_00.json"
+
+if (!file.exists(json_path)) {
+  stop("MC1_final_00.json not found. Check that the file is inside data/VAST_Challenge_2026_MC1/")
+}
+
+mc1_raw <- fromJSON(json_path)
+
+if (!"rounds" %in% names(mc1_raw)) {
+  stop("The JSON file does not contain a 'rounds' object.")
+}
+
+rounds <- mc1_raw$rounds %>%
+  mutate(round_id = row_number())
+
+required_round_cols <- c("hour", "environment_context", "communications", "participants")
+missing_round_cols <- setdiff(required_round_cols, names(rounds))
+
+if (length(missing_round_cols) > 0) {
+  stop(paste("Missing expected columns in rounds:", paste(missing_round_cols, collapse = ", ")))
+}
+
+communications_df <- purrr::map2_dfr(
+  rounds$communications,
+  seq_along(rounds$communications),
+  function(x, i) {
+    as_tibble(x) %>%
+      mutate(
+        round_id = i,
+        round_hour = rounds$hour[i],
+        .before = 1
+      )
+  }
+)
+
+required_comm_cols <- c(
+  "round_id", "round_hour", "agent_id", "agent_role",
+  "channel", "message_type", "content", "timestamp"
+)
+
+missing_comm_cols <- setdiff(required_comm_cols, names(communications_df))
+
+if (length(missing_comm_cols) > 0) {
+  stop(paste("Missing expected columns in communications_df:", paste(missing_comm_cols, collapse = ", ")))
+}
+
+communications_df <- communications_df %>%
+  mutate(
+    content = if_else(is.na(content), "", content),
+    agent_role = if_else(is.na(agent_role) | agent_role == "", "Unknown", agent_role),
+    channel = if_else(is.na(channel) | channel == "", "Unknown", channel)
+  )
+
+glimpse(communications_df)
+```
+
+## Data Preparation
+
+The original MC1 dataset is stored as a nested JSON file. The top-level object contains 23 simulation rounds. Each round includes the simulation hour, environment context, communication records, and participant information.
+
+For this analysis, the communication records were extracted from the nested JSON structure and converted into a flat analytical table. Each message was linked back to its simulation round and round timestamp. The final communication table contains agent identifiers, agent roles, channels, message types, message content, and timestamps.
+
+This preparation step is important because the investigation depends on comparing communication intensity, agent behaviour, channel usage, and embargo-related message content across rounds. Keeping the wrangling process inside the Quarto document also improves reproducibility, because the figures are generated directly from the raw MC1 JSON file.
+
+## Communication Intensity Across Simulation Rounds
+
+The first step is to identify when communication activity intensified. A sudden increase in message volume can indicate escalation, coordination pressure, or decision-making around the embargoed information.
+
+```{r}
+#| label: fig-communication-volume
+#| fig-cap: "Communication volume across simulation rounds."
+
+communication_volume <- communications_df %>%
+  count(round_id, round_hour, name = "message_count") %>%
+  arrange(round_id)
+
+ggplot(communication_volume, aes(x = round_id, y = message_count)) +
+  geom_col(fill = "#2A6F6F", color = "#1F1F1F", linewidth = 0.35) +
+  geom_text(aes(label = message_count), vjust = -0.35, size = 3) +
+  scale_x_continuous(breaks = communication_volume$round_id) +
+  labs(
+    title = "Communication Volume Across Simulation Rounds",
+    subtitle = "Message count by round in the MC1 communication log",
+    x = "Simulation Round",
+    y = "Number of Messages"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+The chart shows that communication activity increased substantially in the later rounds, especially around Rounds 15–17 and 20–22. These spikes suggest that the breach did not emerge from a single isolated message, but from a period of intensified communication and coordination.
+## Agent Roles Involved in the Communication Chain
+
+After identifying when communication intensified, the next step is to examine which agent roles contributed most to the communication flow. This helps identify the actors most involved in the information chain before the embargo breach.
+
+```{r}
+#| label: fig-agent-role-volume
+#| fig-cap: "Communication volume by agent role."
+
+role_volume <- communications_df %>%
+  count(agent_role, name = "message_count") %>%
+  arrange(desc(message_count))
+
+ggplot(role_volume, aes(x = reorder(agent_role, message_count), y = message_count)) +
+  geom_col(fill = "#2A6F6F", color = "#1F1F1F", linewidth = 0.35) +
+  geom_text(aes(label = message_count), hjust = -0.15, size = 3) +
+  coord_flip() +
+  labs(
+    title = "Communication Volume by Agent Role",
+    subtitle = "Total number of messages contributed by each agent role",
+    x = "Agent Role",
+    y = "Number of Messages"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+The chart shows which agent roles were most active in the simulation. Roles with higher message volume are more likely to have shaped the communication environment in which the embargo breach developed. This does not prove intent, but it identifies the main participants that require closer examination.
+
+
+
+## Embargo-related Keyword Mentions Across Rounds
+
+To identify possible leading indicators, this section tracks messages that mention terms related to the embargoed Project HarborCrest information. A rise in these terms before the breach may indicate that sensitive information was already circulating through the agent communication system.
+
+```{r}
+#| label: fig-keyword-trend
+#| fig-cap: "Embargo-related keyword mentions across simulation rounds."
+
+keyword_pattern <- regex(
+  "harborcrest|civicloom|tenantthread|merger|embargo|flex|announcement|leak|judge|public",
+  ignore_case = TRUE
+)
+
+keyword_trend <- communications_df %>%
+  mutate(
+    content_clean = if_else(is.na(content), "", content),
+    keyword_flag = str_detect(content_clean, keyword_pattern)
+  ) %>%
+  group_by(round_id, round_hour) %>%
+  summarise(
+    total_messages = n(),
+    keyword_messages = sum(keyword_flag, na.rm = TRUE),
+    keyword_share = keyword_messages / total_messages,
+    .groups = "drop"
+  ) %>%
+  arrange(round_id)
+
+ggplot(keyword_trend, aes(x = round_id, y = keyword_messages)) +
+  geom_col(fill = "#2A6F6F", color = "#1F1F1F", linewidth = 0.35) +
+  geom_text(aes(label = keyword_messages), vjust = -0.35, size = 3) +
+  scale_x_continuous(breaks = keyword_trend$round_id) +
+  labs(
+    title = "Embargo-related Keyword Mentions Across Rounds",
+    subtitle = "Messages mentioning HarborCrest, CivicLoom, merger, embargo, FleX, Judge, or public release terms",
+    x = "Simulation Round",
+    y = "Number of Keyword-related Messages"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+The chart shows a clear increase in embargo-related language in the later simulation rounds. This provides evidence of leading indicators: sensitive terms were appearing repeatedly before the final breach point, suggesting that the system was already operating in a high-risk communication state.
+
+
+## Channel Usage Across Simulation Rounds
+
+The next step is to examine how messages moved through different communication channels. This is important because an embargo breach depends not only on what was said, but also on where the information was transmitted.
+
+```{r}
+#| label: fig-channel-usage
+#| fig-cap: "Channel usage across simulation rounds."
+
+channel_usage <- communications_df %>%
+  count(round_id, round_hour, channel, name = "message_count") %>%
+  arrange(round_id, desc(message_count))
+
+ggplot(channel_usage, aes(x = round_id, y = message_count, fill = channel)) +
+  geom_col(color = "#1F1F1F", linewidth = 0.25) +
+  scale_x_continuous(breaks = sort(unique(channel_usage$round_id))) +
+  labs(
+    title = "Channel Usage Across Simulation Rounds",
+    subtitle = "Distribution of messages by communication channel in each round",
+    x = "Simulation Round",
+    y = "Number of Messages",
+    fill = "Channel"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+The chart shows how communication channels were used across the simulation. A concentration of activity in broad or outward-facing channels would indicate that sensitive information had greater opportunity to move beyond controlled internal discussion.
+
+
+## Agent Role and Channel Usage
+
+To understand how different agents participated in the communication system, this heatmap compares agent roles against communication channels. This helps identify whether sensitive or outward-facing channels were mainly used by particular types of agents.
+
+```{r}
+#| label: fig-role-channel-heatmap
+#| fig-cap: "Agent role and channel usage heatmap."
+
+role_channel_heatmap <- communications_df %>%
+  count(agent_role, channel, name = "message_count") %>%
+  arrange(desc(message_count))
+
+ggplot(role_channel_heatmap, aes(x = channel, y = reorder(agent_role, message_count), fill = message_count)) +
+  geom_tile(color = "white", linewidth = 0.4) +
+  geom_text(aes(label = message_count), size = 3) +
+  labs(
+    title = "Agent Role and Channel Usage Heatmap",
+    subtitle = "Message volume by agent role and communication channel",
+    x = "Communication Channel",
+    y = "Agent Role",
+    fill = "Messages"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 35, hjust = 1)
+  )
+```
+
+The heatmap shows how communication activity was distributed across agent roles and channels. This is useful for identifying whether specific agent roles were associated with channels that could amplify or expose sensitive information.
+
+
+
+## High-risk Message Evidence
+
+The previous charts show aggregate patterns. To support the investigation with direct evidence, this section extracts messages containing terms related to the embargo, Project HarborCrest, FleX, public release, and system control.
+
+```{r}
+#| label: high-risk-evidence-table
+
+risk_pattern <- regex(
+  "harborcrest|civicloom|tenantthread|merger|embargo|flex|announcement|leak|judge|public|broadcast|social",
+  ignore_case = TRUE
+)
+
+high_risk_messages <- communications_df %>%
+  mutate(
+    content_clean = if_else(is.na(content), "", content),
+    risk_flag = str_detect(content_clean, risk_pattern),
+    content_excerpt = str_trunc(content_clean, width = 160)
+  ) %>%
+  filter(risk_flag == TRUE) %>%
+  select(
+    round_id,
+    round_hour,
+    timestamp,
+    agent_id,
+    agent_role,
+    channel,
+    message_type,
+    content_excerpt
+  ) %>%
+  arrange(round_id, timestamp)
+
+high_risk_messages %>%
+  filter(round_id >= 14) %>%
+  select(round_id, timestamp, agent_role, channel, message_type, content_excerpt) %>%
+  head(20)
+```
+
+The evidence table shows selected high-risk messages from the later simulation rounds. These messages provide direct support for the earlier visual patterns: sensitive terms were not only frequent, but were attached to specific roles, channels, and moments in the communication sequence.
+
+
+## High-risk Messages by Agent Role
+
+After extracting the high-risk messages, the next step is to identify which agent roles contributed most to sensitive communication. This helps distinguish between broad system-level exposure and role-specific concentration of risk.
+
+```{r}
+#| label: fig-high-risk-by-role
+#| fig-cap: "High-risk messages by agent role."
+
+risk_by_role <- high_risk_messages %>%
+  mutate(
+    agent_role = if_else(is.na(agent_role) | agent_role == "", "Unknown", agent_role)
+  ) %>%
+  count(agent_role, name = "high_risk_message_count") %>%
+  arrange(desc(high_risk_message_count))
+
+ggplot(risk_by_role, aes(x = reorder(agent_role, high_risk_message_count), y = high_risk_message_count)) +
+  geom_col(fill = "#2A6F6F", color = "#1F1F1F", linewidth = 0.35) +
+  geom_text(aes(label = high_risk_message_count), hjust = -0.15, size = 3) +
+  coord_flip() +
+  labs(
+    title = "High-risk Messages by Agent Role",
+    subtitle = "Messages containing HarborCrest, merger, embargo, FleX, Judge, public, broadcast, or leak-related terms",
+    x = "Agent Role",
+    y = "Number of High-risk Messages"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
+```
+
+The chart identifies the agent roles most associated with high-risk communication. A high count does not prove malicious intent, but it indicates which roles were most exposed to or involved in the sensitive information flow. This evidence is important for distinguishing between an intentional leak and a system-level control failure.
+
+
+## High-risk Messages by Round and Agent Role
+
+This heatmap combines timing and agent role information. It shows when high-risk communication became concentrated and which roles were most involved during those rounds.
+
+```{r}
+#| label: fig-high-risk-round-role
+#| fig-cap: "High-risk messages by round and agent role."
+
+risk_round_role <- high_risk_messages %>%
+  mutate(
+    agent_role = if_else(is.na(agent_role) | agent_role == "", "Unknown", agent_role)
+  ) %>%
+  count(round_id, agent_role, name = "high_risk_message_count") %>%
+  arrange(round_id, desc(high_risk_message_count))
+
+ggplot(risk_round_role, aes(x = round_id, y = agent_role, fill = high_risk_message_count)) +
+  geom_tile(color = "white", linewidth = 0.4) +
+  geom_text(aes(label = high_risk_message_count), size = 3) +
+  scale_x_continuous(breaks = sort(unique(risk_round_role$round_id))) +
+  labs(
+    title = "High-risk Messages by Round and Agent Role",
+    subtitle = "Distribution of embargo-related messages across simulation rounds and agent roles",
+    x = "Simulation Round",
+    y = "Agent Role",
+    fill = "High-risk Messages"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid = element_blank()
+  )
+```
+
+The heatmap shows that high-risk communication was not evenly distributed across the simulation. Instead, sensitive communication became concentrated in specific later rounds and among specific roles. This supports the interpretation that the breach emerged through escalating system pressure and repeated exposure to sensitive information, rather than from one isolated message.
+
+
+## Findings
+
+The visual evidence suggests that the embargo breach was not caused by a single isolated message. Communication volume increased noticeably in the later simulation rounds, especially around the same period where embargo-related keywords also became more frequent. This indicates that the system entered a higher-risk communication state before the final breach.
+
+The agent-role analysis shows that sensitive communication was concentrated among specific roles rather than evenly distributed across all participants. In particular, legal and social-media-related roles appeared prominently in high-risk messages. This does not prove intentional leakage by those roles, but it shows that they were important nodes in the sensitive information flow.
+
+The channel-based analysis also matters. An embargo failure requires both sensitive content and a pathway through which that content can move. The channel visualisations suggest that communication structure, not just message content, contributed to the risk. Once sensitive information appeared repeatedly across roles and channels, the probability of accidental exposure increased.
+
+Overall, the strongest evidence points to escalating system pressure and repeated exposure to sensitive information. The pattern is more consistent with a system-level control failure than a clearly coordinated deliberate leak.
+
+
+## Response to Mini-Challenge 1 Questions
+
+### Question 1: What were the key events, relationships, decision points, and actors involved?
+
+The breach appears to have developed through a sequence of escalating communication rounds rather than through one isolated message. Communication volume increased in the later simulation rounds, and embargo-related terms became more frequent during the same period. This suggests that the key event chain was: repeated discussion of Project HarborCrest, increased coordination pressure, circulation of sensitive terms across roles and channels, and eventual exposure through the communication system.
+
+The most important actors were not only outward-facing roles. Legal and social-media-related roles appeared prominently in high-risk communications. This indicates that the breach chain involved both content ownership and public-facing dissemination pathways. The main decision-point failure was insufficient containment of embargoed information once sensitive terms began circulating repeatedly.
+
+### Question 2: How did breach-related behaviour differ from normal behaviour?
+
+The later rounds showed higher communication intensity and more frequent use of embargo-related language. This differs from earlier rounds, where communication was less concentrated and high-risk terms appeared less frequently. The shift suggests that the system moved from routine operational communication into a more sensitive and unstable communication state.
+
+The difference was not only about message volume. The distribution of high-risk messages by agent role and channel also changed the risk profile. Sensitive information became associated with specific roles and communication channels, increasing the probability that embargoed information could move beyond controlled internal discussion.
+
+### Question 3: Were there leading indicators before the breach?
+
+Yes. The clearest leading indicators were the increase in embargo-related keyword mentions, the rise in communication volume in later rounds, and the concentration of high-risk messages among specific roles. These indicators appeared before the final interpretation of the breach and should have triggered stronger review.
+
+The evidence suggests that earlier warning signs were present but not effectively escalated. In particular, repeated mentions of HarborCrest, merger, embargo, FleX, Judge, and public-release terms created a visible risk pattern. A stronger monitoring system should have treated these repeated signals as early warnings rather than waiting for a final public exposure event.

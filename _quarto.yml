@@ -45,6 +45,8 @@ website:
             href: Take-home_Ex/Take-home_EX02/Executive_Summary.html
           - text: "Take-home Exercise 2 - Technical Report"
             href: Take-home_Ex/Take-home_EX02/Technical_Report.html
+          - text: "Take-home Exercise 2 - MC1 Report"
+            href: th_ex/th_ex2/th_ex2.html
 
           - text: "Take-home Exercise 3 - Executive Summary"
             href: Take-home_Ex/Take-home_EX03/Executive_Summary.html
