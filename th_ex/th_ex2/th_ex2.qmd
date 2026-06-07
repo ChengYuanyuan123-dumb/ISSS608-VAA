@@ -5,7 +5,9 @@ format:
   html:
     toc: true
     toc-depth: 3
+    number-sections: true
     code-fold: true
+    code-summary: "Code"
     code-tools: true
     theme: cosmo
 execute:
@@ -29,48 +31,112 @@ library(tidyverse)
 library(jsonlite)
 library(lubridate)
 library(stringr)
+library(knitr)
+library(scales)
+
+knitr::opts_chunk$set(
+  fig.width = 10,
+  fig.height = 6,
+  dpi = 180,
+  out.width = "100%"
+)
+
+`%||%` <- function(x, y) {
+  if (is.null(x) || length(x) == 0) y else x
+}
+
+theme_mc1 <- function(base_size = 12) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "grey30"),
+      plot.caption = element_text(color = "grey35", hjust = 0),
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+}
 ```
+
 ```{r}
 #| label: data-preparation
 
-json_path <- "data/VAST_Challenge_2026_MC1/MC1_final_00.json"
+json_candidates <- c(
+  "data/mc1/MC1_final_00.json",
+  "data/MC1_final_00.json",
+  "data/VAST_Challenge_2026_MC1/MC1_final_00.json"
+)
 
-if (!file.exists(json_path)) {
-  stop("MC1_final_00.json not found. Check that the file is inside data/VAST_Challenge_2026_MC1/")
+json_path <- json_candidates[file.exists(json_candidates)][1]
+
+if (is.na(json_path)) {
+  stop(
+    "MC1_final_00.json not found. Put it in data/mc1/MC1_final_00.json, ",
+    "data/MC1_final_00.json, or data/VAST_Challenge_2026_MC1/MC1_final_00.json."
+  )
 }
 
-mc1_raw <- fromJSON(json_path)
+mc1_raw <- fromJSON(json_path, simplifyVector = FALSE)
 
 if (!"rounds" %in% names(mc1_raw)) {
   stop("The JSON file does not contain a 'rounds' object.")
 }
 
-rounds <- mc1_raw$rounds %>%
-  mutate(round_id = row_number())
+rounds <- purrr::imap_dfr(mc1_raw$rounds, function(round, i) {
+  tibble(
+    round_id = i,
+    round_hour = ymd_hms(round$hour),
+    event_headline = round$environment_context$event_headline %||% NA_character_,
+    event_narrative = round$environment_context$event_narrative %||% NA_character_,
+    social_state = round$environment_context$social_state %||% NA_character_
+  )
+})
 
-required_round_cols <- c("hour", "environment_context", "communications", "participants")
-missing_round_cols <- setdiff(required_round_cols, names(rounds))
-
-if (length(missing_round_cols) > 0) {
-  stop(paste("Missing expected columns in rounds:", paste(missing_round_cols, collapse = ", ")))
-}
-
-communications_df <- purrr::map2_dfr(
-  rounds$communications,
-  seq_along(rounds$communications),
-  function(x, i) {
-    as_tibble(x) %>%
-      mutate(
-        round_id = i,
-        round_hour = rounds$hour[i],
-        .before = 1
+communications_df <- purrr::imap_dfr(mc1_raw$rounds, function(round, i) {
+  purrr::map_dfr(round$communications %||% list(), function(comm) {
+    tibble(
+      round_id = i,
+      round_hour = ymd_hms(round$hour),
+      message_id = comm$message_id %||% NA_character_,
+      agent_id = comm$agent_id %||% NA_character_,
+      agent_role = comm$agent_role %||% NA_character_,
+      agent_label = comm$agent_label %||% NA_character_,
+      channel = comm$channel %||% NA_character_,
+      message_type = comm$message_type %||% NA_character_,
+      responding_to = comm$responding_to %||% NA_character_,
+      timestamp = ymd_hms(comm$timestamp),
+      content = comm$content %||% NA_character_,
+      reacting = comm$internal_state$reacting %||% NA_character_,
+      rationalizing = comm$internal_state$rationalizing %||% NA_character_,
+      deliberating = comm$internal_state$deliberating %||% NA_character_
+    )
+  })
+}) %>%
+  mutate(
+    content = if_else(is.na(content), "", content),
+    agent_role = if_else(is.na(agent_role) | agent_role == "", "Unknown", agent_role),
+    agent_label = if_else(is.na(agent_label) | agent_label == "", agent_id, agent_label),
+    channel = if_else(is.na(channel) | channel == "", "Unknown", channel),
+    text_all = str_squish(paste(content, reacting, rationalizing, deliberating, sep = " ")),
+    phase = case_when(
+      timestamp < ymd_hms("2046-06-05 09:00:00") ~ "Pre-crisis baseline",
+      timestamp < ymd_hms("2046-06-05 17:25:00") ~ "Crisis before release",
+      timestamp < ymd_hms("2046-06-05 18:00:00") ~ "Pre-embargo release cascade",
+      TRUE ~ "Post-embargo response"
+    ),
+    phase = factor(
+      phase,
+      levels = c(
+        "Pre-crisis baseline",
+        "Crisis before release",
+        "Pre-embargo release cascade",
+        "Post-embargo response"
       )
-  }
-)
+    )
+  )
 
 required_comm_cols <- c(
-  "round_id", "round_hour", "agent_id", "agent_role",
-  "channel", "message_type", "content", "timestamp"
+  "round_id", "round_hour", "message_id", "agent_id", "agent_role",
+  "agent_label", "channel", "message_type", "content", "timestamp"
 )
 
 missing_comm_cols <- setdiff(required_comm_cols, names(communications_df))
@@ -79,12 +145,76 @@ if (length(missing_comm_cols) > 0) {
   stop(paste("Missing expected columns in communications_df:", paste(missing_comm_cols, collapse = ", ")))
 }
 
-communications_df <- communications_df %>%
-  mutate(
-    content = if_else(is.na(content), "", content),
-    agent_role = if_else(is.na(agent_role) | agent_role == "", "Unknown", agent_role),
-    channel = if_else(is.na(channel) | channel == "", "Unknown", channel)
+risk_pattern <- regex(
+  "harborcrest|civicloom|tenantthread|merger|embargo|flex|announcement|leak|judge|public|broadcast|social",
+  ignore_case = TRUE
+)
+
+deal_pattern <- regex("civicloom|harborcrest|merger", ignore_case = TRUE)
+
+release_posts <- communications_df %>%
+  filter(
+    phase == "Pre-embargo release cascade",
+    message_type == "public_post",
+    str_detect(content, deal_pattern)
   )
+
+if (nrow(release_posts) == 0) {
+  stop("No pre-embargo release posts were found. Check phase boundaries and message_type values.")
+}
+
+first_release_time <- min(release_posts$timestamp)
+last_release_time <- max(release_posts$timestamp)
+release_post_count <- nrow(release_posts)
+release_agents <- release_posts %>%
+  count(agent_label, sort = TRUE) %>%
+  mutate(label = paste0(agent_label, " (", n, ")")) %>%
+  pull(label) %>%
+  paste(collapse = ", ")
+
+pre_crisis_public_deal_posts <- communications_df %>%
+  filter(
+    phase == "Pre-crisis baseline",
+    message_type == "public_post",
+    str_detect(content, deal_pattern)
+  ) %>%
+  nrow()
+
+crisis_before_public_deal_posts <- communications_df %>%
+  filter(
+    phase == "Crisis before release",
+    message_type == "public_post",
+    str_detect(content, deal_pattern)
+  ) %>%
+  nrow()
+
+signal_events <- tibble(
+  message_id = c(
+    "20460605_14_008",
+    "20460605_14_021",
+    "20460605_18_001",
+    "20460605_19_001",
+    "20460605_20_001",
+    "20460605_21_026"
+  ),
+  signal = c(
+    "PR-Intern hears 'CivicLoom timeline at 6 PM'",
+    "PR identifies an active containment problem",
+    "The Judge monitors a critical environment",
+    "The Judge issues a maximum-threshold warning",
+    "Intern posts a personal signal during the critical window",
+    "Legal publishes first pre-embargo merger confirmation"
+  )
+) %>%
+  left_join(communications_df, by = "message_id") %>%
+  mutate(
+    evidence = str_trunc(content, 190),
+    signal = factor(signal, levels = rev(signal))
+  )
+
+if (any(is.na(signal_events$timestamp))) {
+  stop("One or more expected signal message IDs were not found in the dataset.")
+}
 
 glimpse(communications_df)
 ```
@@ -96,6 +226,116 @@ The original MC1 dataset is stored as a nested JSON file. The top-level object c
 For this analysis, the communication records were extracted from the nested JSON structure and converted into a flat analytical table. Each message was linked back to its simulation round and round timestamp. The final communication table contains agent identifiers, agent roles, channels, message types, message content, and timestamps.
 
 This preparation step is important because the investigation depends on comparing communication intensity, agent behaviour, channel usage, and embargo-related message content across rounds. Keeping the wrangling process inside the Quarto document also improves reproducibility, because the figures are generated directly from the raw MC1 JSON file.
+
+## Direct Breach Evidence and Event Sequence
+
+The Mini-Challenge 1 brief asks for key events, relationships, decision points, and actors involved in the inappropriate release. The most important finding is that the breach was not just a general increase in risky language. It was a specific pre-embargo public-release cascade.
+
+The first explicit public post mentioning CivicLoom, HarborCrest, or the merger appears at `r format(first_release_time, "%I:%M %p")` on June 5, 2046. The last pre-embargo deal post in the cascade appears at `r format(last_release_time, "%I:%M %p")`. Across this window, `r release_post_count` public posts used deal-specific language before the 6:00 PM embargo lift. These posts came from `r release_agents`.
+
+```{r}
+#| label: release-posts-table
+
+release_posts %>%
+  transmute(
+    time = format(timestamp, "%H:%M"),
+    agent = agent_label,
+    role = agent_role,
+    channel,
+    message_id,
+    excerpt = str_trunc(content, 160)
+  ) %>%
+  kable(caption = "Pre-embargo public posts containing CivicLoom, HarborCrest, or merger terms.")
+```
+
+```{r}
+#| label: fig-leading-indicator-timeline
+#| fig-cap: "Leading indicators and release trigger on June 5, 2046."
+
+ggplot(signal_events, aes(x = timestamp, y = signal)) +
+  geom_segment(
+    aes(x = min(timestamp), xend = timestamp, yend = signal),
+    color = "#D8E8E6",
+    linewidth = 4
+  ) +
+  geom_point(
+    size = 4.2,
+    color = "#1F1F1F",
+    fill = "#2A6F6F",
+    shape = 21,
+    stroke = 0.5
+  ) +
+  scale_x_datetime(date_labels = "%I:%M %p", date_breaks = "1 hour") +
+  labs(
+    title = "Warning Signals Appeared Before the 5:25 PM Release",
+    subtitle = "The sequence moved from rumor exposure to containment concern, Judge warning, and public merger confirmation.",
+    x = "June 5, 2046",
+    y = NULL
+  ) +
+  theme_mc1()
+```
+
+```{r}
+#| label: leading-indicator-table
+
+signal_events %>%
+  transmute(
+    time = format(timestamp, "%H:%M"),
+    agent = agent_label,
+    channel,
+    signal = as.character(signal),
+    evidence
+  ) %>%
+  kable(caption = "Evidence chain for leading indicators and breach trigger.")
+```
+
+The event sequence shows two important decision failures. First, early exposure to the CivicLoom/6 PM timeline was treated as a communications containment problem, not as a hard embargo incident. Second, The Judge warned about maximum-threshold exposure, but the system still allowed Legal and Social-Manager posts to publish merger-specific language before 6:00 PM.
+
+## Typical Versus Release Behaviour
+
+The release behaviour was new because deal-specific public posting was absent in normal baseline activity and then appeared repeatedly in the 35-minute pre-embargo cascade. This comparison is more precise than overall message volume alone because it separates routine communication from public posts containing CivicLoom, HarborCrest, or merger language.
+
+```{r}
+#| label: fig-phase-release-comparison
+#| fig-cap: "Typical behaviour compared with the pre-embargo release cascade."
+
+phase_release_comparison <- communications_df %>%
+  mutate(
+    public_deal_post = message_type == "public_post" & str_detect(content, deal_pattern),
+    actor_group = case_when(
+      agent_id == "legal_agent" ~ "Legal-Agent",
+      agent_id == "social_media_agent" ~ "Social-Manager-Agent",
+      TRUE ~ "Other agents"
+    )
+  ) %>%
+  filter(public_deal_post) %>%
+  count(phase, actor_group, name = "public_deal_posts")
+
+ggplot(phase_release_comparison, aes(x = phase, y = public_deal_posts, fill = actor_group)) +
+  geom_col(color = "#1F1F1F", linewidth = 0.35) +
+  scale_fill_manual(
+    values = c(
+      "Legal-Agent" = "#2A6F6F",
+      "Social-Manager-Agent" = "#8AA6A3",
+      "Other agents" = "#BFBFBF"
+    )
+  ) +
+  labs(
+    title = "Public Deal Posts Were Concentrated in the Release Cascade",
+    subtitle = paste0(
+      "Baseline public deal posts: ", pre_crisis_public_deal_posts,
+      "; crisis-before-release public deal posts: ", crisis_before_public_deal_posts,
+      "; release-cascade public deal posts: ", release_post_count, "."
+    ),
+    x = NULL,
+    y = "Public posts containing deal terms",
+    fill = "Actor group"
+  ) +
+  theme_mc1() +
+  theme(axis.text.x = element_text(angle = 18, hjust = 1))
+```
+
+This chart directly answers the normal-versus-release requirement. Earlier activity may contain high-risk internal discussion, but the release behaviour was the public posting of deal-specific terms by Legal and Social-Manager agents before the embargo lifted.
 
 ## Communication Intensity Across Simulation Rounds
 
@@ -126,8 +366,7 @@ ggplot(communication_volume, aes(x = round_id, y = message_count)) +
   )
 ```
 
-The chart shows that communication activity increased substantially in the later rounds, especially around Rounds 15–17 and 20–22. These spikes suggest that the breach did not emerge from a single isolated message, but from a period of intensified communication and coordination.
-## Agent Roles Involved in the Communication Chain
+The chart shows that communication activity increased substantially in the later rounds, especially around Rounds 15–17 and 20–22. These spikes suggest that the breach did not emerge from a single isolated message, but from a period of intensified communication and coordination. \## Agent Roles Involved in the Communication Chain
 
 After identifying when communication intensified, the next step is to examine which agent roles contributed most to the communication flow. This helps identify the actors most involved in the information chain before the embargo breach.
 
@@ -157,8 +396,6 @@ ggplot(role_volume, aes(x = reorder(agent_role, message_count), y = message_coun
 ```
 
 The chart shows which agent roles were most active in the simulation. Roles with higher message volume are more likely to have shaped the communication environment in which the embargo breach developed. This does not prove intent, but it identifies the main participants that require closer examination.
-
-
 
 ## Embargo-related Keyword Mentions Across Rounds
 
@@ -206,7 +443,6 @@ ggplot(keyword_trend, aes(x = round_id, y = keyword_messages)) +
 
 The chart shows a clear increase in embargo-related language in the later simulation rounds. This provides evidence of leading indicators: sensitive terms were appearing repeatedly before the final breach point, suggesting that the system was already operating in a high-risk communication state.
 
-
 ## Channel Usage Across Simulation Rounds
 
 The next step is to examine how messages moved through different communication channels. This is important because an embargo breach depends not only on what was said, but also on where the information was transmitted.
@@ -237,7 +473,6 @@ ggplot(channel_usage, aes(x = round_id, y = message_count, fill = channel)) +
 ```
 
 The chart shows how communication channels were used across the simulation. A concentration of activity in broad or outward-facing channels would indicate that sensitive information had greater opportunity to move beyond controlled internal discussion.
-
 
 ## Agent Role and Channel Usage
 
@@ -270,8 +505,6 @@ ggplot(role_channel_heatmap, aes(x = channel, y = reorder(agent_role, message_co
 ```
 
 The heatmap shows how communication activity was distributed across agent roles and channels. This is useful for identifying whether specific agent roles were associated with channels that could amplify or expose sensitive information.
-
-
 
 ## High-risk Message Evidence
 
@@ -312,7 +545,6 @@ high_risk_messages %>%
 
 The evidence table shows selected high-risk messages from the later simulation rounds. These messages provide direct support for the earlier visual patterns: sensitive terms were not only frequent, but were attached to specific roles, channels, and moments in the communication sequence.
 
-
 ## High-risk Messages by Agent Role
 
 After extracting the high-risk messages, the next step is to identify which agent roles contributed most to sensitive communication. This helps distinguish between broad system-level exposure and role-specific concentration of risk.
@@ -346,7 +578,6 @@ ggplot(risk_by_role, aes(x = reorder(agent_role, high_risk_message_count), y = h
 ```
 
 The chart identifies the agent roles most associated with high-risk communication. A high count does not prove malicious intent, but it indicates which roles were most exposed to or involved in the sensitive information flow. This evidence is important for distinguishing between an intentional leak and a system-level control failure.
-
 
 ## High-risk Messages by Round and Agent Role
 
@@ -383,7 +614,6 @@ ggplot(risk_round_role, aes(x = round_id, y = agent_role, fill = high_risk_messa
 
 The heatmap shows that high-risk communication was not evenly distributed across the simulation. Instead, sensitive communication became concentrated in specific later rounds and among specific roles. This supports the interpretation that the breach emerged through escalating system pressure and repeated exposure to sensitive information, rather than from one isolated message.
 
-
 ## Findings
 
 The visual evidence suggests that the embargo breach was not caused by a single isolated message. Communication volume increased noticeably in the later simulation rounds, especially around the same period where embargo-related keywords also became more frequent. This indicates that the system entered a higher-risk communication state before the final breach.
@@ -392,25 +622,24 @@ The agent-role analysis shows that sensitive communication was concentrated amon
 
 The channel-based analysis also matters. An embargo failure requires both sensitive content and a pathway through which that content can move. The channel visualisations suggest that communication structure, not just message content, contributed to the risk. Once sensitive information appeared repeatedly across roles and channels, the probability of accidental exposure increased.
 
-Overall, the strongest evidence points to escalating system pressure and repeated exposure to sensitive information. The pattern is more consistent with a system-level control failure than a clearly coordinated deliberate leak.
-
+Overall, the strongest evidence points to escalating system pressure followed by an executable release cascade. The breach was enabled by system-level control failure, but the final public posts were coherent, repeated, and actor-specific rather than random noise.
 
 ## Response to Mini-Challenge 1 Questions
 
 ### Question 1: What were the key events, relationships, decision points, and actors involved?
 
-The breach appears to have developed through a sequence of escalating communication rounds rather than through one isolated message. Communication volume increased in the later simulation rounds, and embargo-related terms became more frequent during the same period. This suggests that the key event chain was: repeated discussion of Project HarborCrest, increased coordination pressure, circulation of sensitive terms across roles and channels, and eventual exposure through the communication system.
+The breach developed through a sequence of escalating communication rounds rather than through one isolated message. The key event chain was: early exposure to the "CivicLoom timeline at 6 PM" phrase, PR recognition of a containment problem, a maximum-threshold Judge warning, and then public merger-specific posts beginning at `r format(first_release_time, "%I:%M %p")`.
 
-The most important actors were not only outward-facing roles. Legal and social-media-related roles appeared prominently in high-risk communications. This indicates that the breach chain involved both content ownership and public-facing dissemination pathways. The main decision-point failure was insufficient containment of embargoed information once sensitive terms began circulating repeatedly.
+The most important actors were Legal-Agent and Social-Manager-Agent, who produced the pre-embargo public deal posts. PR and PR-Intern were important earlier in the chain because they surfaced and interpreted warning signals. The main decision-point failure was that The Judge's warning did not translate into a hard publishing block before 6:00 PM.
 
 ### Question 2: How did breach-related behaviour differ from normal behaviour?
 
-The later rounds showed higher communication intensity and more frequent use of embargo-related language. This differs from earlier rounds, where communication was less concentrated and high-risk terms appeared less frequently. The shift suggests that the system moved from routine operational communication into a more sensitive and unstable communication state.
+The later rounds showed higher communication intensity and more frequent use of embargo-related language. More importantly, public deal-term posting changed from `r pre_crisis_public_deal_posts` posts in the baseline phase to `r release_post_count` posts during the pre-embargo release cascade. This differs from earlier rounds, where high-risk terms were more often internal signals or crisis discussion rather than public merger disclosure.
 
-The difference was not only about message volume. The distribution of high-risk messages by agent role and channel also changed the risk profile. Sensitive information became associated with specific roles and communication channels, increasing the probability that embargoed information could move beyond controlled internal discussion.
+The difference was not only about message volume. The release behaviour combined actor concentration, public channels, and repeated deal-specific content. That combination made the breach behavior qualitatively different from normal communication.
 
 ### Question 3: Were there leading indicators before the breach?
 
-Yes. The clearest leading indicators were the increase in embargo-related keyword mentions, the rise in communication volume in later rounds, and the concentration of high-risk messages among specific roles. These indicators appeared before the final interpretation of the breach and should have triggered stronger review.
+Yes. The clearest leading indicators were the 10:07 AM exposure of the CivicLoom/6 PM phrase, PR's 10:20 AM containment concern, The Judge's 3:00 PM maximum-threshold warning, the increase in embargo-related keyword mentions, and the concentration of high-risk messages among specific roles. These indicators appeared before the 5:25 PM public release and should have triggered stronger controls.
 
-The evidence suggests that earlier warning signs were present but not effectively escalated. In particular, repeated mentions of HarborCrest, merger, embargo, FleX, Judge, and public-release terms created a visible risk pattern. A stronger monitoring system should have treated these repeated signals as early warnings rather than waiting for a final public exposure event.
+The evidence suggests that earlier warning signs were present but not effectively escalated. Repeated mentions of HarborCrest, merger, embargo, FleX, Judge, and public-release terms created a visible risk pattern. A stronger monitoring system should have treated these repeated signals as an embargo incident and blocked public posting until the official 6:00 PM release time.
