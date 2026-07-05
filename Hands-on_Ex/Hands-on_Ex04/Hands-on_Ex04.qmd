@@ -7,9 +7,8 @@ format:
     toc: true
     toc-depth: 3
     number-sections: true
-    theme: cosmo
-    code-fold: true
-    code-tools: true
+    code-fold: false
+editor: visual
 execute:
   echo: true
   warning: false
@@ -38,6 +37,14 @@ pacman::p_load(
   gapminder,
   plotly,
   scales
+)
+
+continent_palette <- c(
+  "Africa" = "#2A6F6F",
+  "Americas" = "#E76F51",
+  "Asia" = "#5B7F6E",
+  "Europe" = "#A66A4C",
+  "Oceania" = "#D95F02"
 )
 ```
 
@@ -125,7 +132,9 @@ Before creating an animation, it is safer to build a static version of the chart
 
 A static chart helps confirm whether the variables, scales, colours and labels make sense. If the static chart is already confusing, animation will usually make the confusion move around the screen instead of solving it.
 
-In this exercise, the static bubble chart uses the year 2007 as a checkpoint. Once the static version works, the same visual structure can be extended into an animated chart across all years. \# Static Bubble Chart
+In this exercise, the static bubble chart uses the year 2007 as a checkpoint. Once the static version works, the same visual structure can be extended into an animated chart across all years.
+
+# Static Bubble Chart
 
 Before adding animation, I first create a static bubble chart for one selected year. This acts as a visual checkpoint. If the static chart is unclear, animating it will not magically make it better.
 
@@ -150,6 +159,7 @@ ggplot(
     range = c(2, 18),
     name = "Population\n(million)"
   ) +
+  scale_colour_manual(values = continent_palette) +
   labs(
     title = "GDP per Capita and Life Expectancy in 2007",
     subtitle = "Bubble size represents population; colour represents continent",
@@ -183,7 +193,9 @@ Second, GDP per capita is shown on a log scale. This is necessary because income
 
 Third, hover tooltips are used to show country-level details. This keeps the chart readable because the main view shows the overall pattern, while the tooltip provides details only when the reader asks for them.
 
-Finally, bubble size represents population. This adds another layer of information, but it should be interpreted carefully. Bubble size is useful for rough comparison, not exact measurement. \# Animated Bubble Chart
+Finally, bubble size represents population. This adds another layer of information, but it should be interpreted carefully. Bubble size is useful for rough comparison, not exact measurement.
+
+# Animated Bubble Chart
 
 The static bubble chart shows one year, but it cannot show how countries move over time. To reveal the time-based pattern, I now animate the same chart across years.
 
@@ -196,6 +208,7 @@ plot_ly(
   y = ~lifeExp,
   size = ~population_million,
   color = ~continent,
+  colors = continent_palette,
   frame = ~year,
   ids = ~country,
   type = "scatter",
@@ -247,6 +260,7 @@ plot_ly(
   x = ~year,
   y = ~avg_lifeExp,
   color = ~continent,
+  colors = continent_palette,
   frame = ~year,
   type = "scatter",
   mode = "lines+markers",
@@ -286,6 +300,7 @@ plot_ly(
   x = ~population_million,
   y = ~country,
   color = ~continent,
+  colors = continent_palette,
   frame = ~year,
   type = "bar",
   orientation = "h",

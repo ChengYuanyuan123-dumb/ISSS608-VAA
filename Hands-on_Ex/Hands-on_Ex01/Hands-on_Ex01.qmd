@@ -7,9 +7,8 @@ format:
     toc: true
     toc-depth: 3
     number-sections: true
-    theme: cosmo
-    code-fold: true
-    code-tools: true
+    code-fold: false
+editor: visual
 execute:
   echo: true
   warning: false
