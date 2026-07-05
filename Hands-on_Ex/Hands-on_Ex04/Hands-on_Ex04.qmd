@@ -41,11 +41,19 @@ pacman::p_load(
 
 continent_palette <- c(
   "Africa" = "#2A6F6F",
-  "Americas" = "#E76F51",
-  "Asia" = "#5B7F6E",
-  "Europe" = "#A66A4C",
-  "Oceania" = "#D95F02"
+  "Americas" = "#D95F02",
+  "Asia" = "#F2A65A",
+  "Europe" = "#7570B3",
+  "Oceania" = "#5B7F6E"
 )
+
+vaa_chart_theme <- theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    axis.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
 ```
 
 # Animation Concepts
@@ -153,7 +161,7 @@ ggplot(
     colour = continent
   )
 ) +
-  geom_point(alpha = 0.7) +
+  geom_point(alpha = 0.72, stroke = 0.35) +
   scale_x_log10(labels = dollar) +
   scale_size_continuous(
     range = c(2, 18),
@@ -167,10 +175,8 @@ ggplot(
     y = "Life Expectancy",
     colour = "Continent"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
-    plot.title = element_text(face = "bold"),
-    panel.grid.minor = element_blank(),
     legend.position = "right"
   )
 ```
@@ -237,7 +243,8 @@ plot_ly(
       type = "log"
     ),
     yaxis = list(title = "Life Expectancy"),
-    legend = list(title = list(text = "Continent"))
+    legend = list(title = list(text = "Continent")),
+    hoverlabel = list(bgcolor = "#2A6F6F", font = list(color = "white"))
   )
 ```
 
@@ -264,6 +271,11 @@ plot_ly(
   frame = ~year,
   type = "scatter",
   mode = "lines+markers",
+  line = list(width = 2),
+  marker = list(
+    size = 7,
+    line = list(color = "#1F1F1F", width = 0.5)
+  ),
   text = ~paste0(
     "Continent: ", continent,
     "<br>Year: ", year,
@@ -275,7 +287,8 @@ plot_ly(
     title = "Average Life Expectancy by Continent Over Time",
     xaxis = list(title = "Year"),
     yaxis = list(title = "Average Life Expectancy"),
-    legend = list(title = list(text = "Continent"))
+    legend = list(title = list(text = "Continent")),
+    hoverlabel = list(bgcolor = "#2A6F6F", font = list(color = "white"))
   )
 ```
 
@@ -304,6 +317,7 @@ plot_ly(
   frame = ~year,
   type = "bar",
   orientation = "h",
+  marker = list(line = list(color = "#1F1F1F", width = 0.5)),
   text = ~paste0(
     "Country: ", country,
     "<br>Continent: ", continent,
@@ -316,7 +330,8 @@ plot_ly(
     title = "Top 10 Most Populated Countries Over Time",
     xaxis = list(title = "Population (million)"),
     yaxis = list(title = ""),
-    legend = list(title = list(text = "Continent"))
+    legend = list(title = list(text = "Continent")),
+    hoverlabel = list(bgcolor = "#2A6F6F", font = list(color = "white"))
   )
 ```
 

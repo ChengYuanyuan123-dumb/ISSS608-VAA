@@ -31,6 +31,28 @@ The main package used here is `tidyverse`, which includes `ggplot2` for data vis
 
 ```{r}
 pacman::p_load(tidyverse)
+
+vaa_palette <- c("#2A6F6F", "#D95F02", "#F2A65A", "#7570B3")
+
+race_palette <- c(
+  "Malay" = "#2A6F6F",
+  "Chinese" = "#D95F02",
+  "Indian" = "#F2A65A",
+  "Others" = "#7570B3"
+)
+
+gender_palette <- c(
+  "Male" = "#2A6F6F",
+  "Female" = "#D95F02"
+)
+
+vaa_chart_theme <- theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 10),
+    axis.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank()
+  )
 ```
 
 ## Importing the data
@@ -62,7 +84,18 @@ The first visualisation is a simple bar chart showing the distribution of studen
 ```{r}
 ggplot(data = exam_data,
        aes(x = RACE)) + 
-  geom_bar()
+  geom_bar(
+    fill = "#2A6F6F",
+    color = "#1F1F1F",
+    linewidth = 0.35,
+    width = 0.65
+  ) +
+  labs(
+    title = "Distribution of Students by Race",
+    x = "Race",
+    y = "Number of Students"
+  ) +
+  vaa_chart_theme
 ```
 
 ### Improving the Bar Chart Design
@@ -72,14 +105,15 @@ The basic bar chart correctly shows the distribution of students by race, but th
 ```{r}
 ggplot(data = exam_data,
        aes(x = RACE, fill = RACE)) +
-  geom_bar(width = 0.65) +
+  geom_bar(color = "#1F1F1F", linewidth = 0.35, width = 0.65) +
+  scale_fill_manual(values = race_palette) +
   labs(
     title = "Distribution of Students by Race",
     subtitle = "Based on the Exam_data dataset",
     x = "Race",
     y = "Number of Students"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     legend.position = "none",
     plot.title = element_text(face = "bold", size = 14),
@@ -97,13 +131,18 @@ In ggplot2, aesthetics can be controlled in two different ways. If an aesthetic 
 ```{r}
 ggplot(data = exam_data,
        aes(x = RACE)) +
-  geom_bar(fill = "steelblue", width = 0.65) +
+  geom_bar(
+    fill = "#2A6F6F",
+    color = "#1F1F1F",
+    linewidth = 0.35,
+    width = 0.65
+  ) +
   labs(
     title = "Distribution of Students by Race with Fixed Fill Colour",
     x = "Race",
     y = "Number of Students"
   ) +
-  theme_minimal()
+  vaa_chart_theme
 ```
 
 Unlike the previous improved bar chart, this version uses a fixed fill colour. The colour is not linked to the `RACE` variable, so all bars share the same colour. This is useful when the purpose is to compare bar heights without using colour to represent categories.
@@ -131,7 +170,7 @@ ggplot(data = race_count,
     x = "Race",
     y = "Number of Students"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -164,7 +203,7 @@ ggplot(data = exam_data,
     x = "English Score",
     y = "Density"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -192,7 +231,7 @@ ggplot(data = exam_data,
     x = "English Score",
     y = "Number of Students"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -212,7 +251,7 @@ ggplot(data = exam_data,
   geom_histogram(
     binwidth = 10,
     boundary = 0,
-    fill = "#A66A4C",
+    fill = "#D95F02",
     color = "#1F1F1F",
     linewidth = 0.35
   ) +
@@ -222,7 +261,7 @@ ggplot(data = exam_data,
     x = "English Score",
     y = "Number of Students"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -246,6 +285,7 @@ ggplot(data = exam_data,
     linewidth = 0.3,
     alpha = 0.75
   ) +
+  scale_fill_manual(values = gender_palette) +
   labs(
     title = "English Score Distribution by Gender",
     subtitle = "Using fill mapping inside aes()",
@@ -253,7 +293,7 @@ ggplot(data = exam_data,
     y = "Number of Students",
     fill = "Gender"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -283,7 +323,7 @@ ggplot(data = exam_data,
     x = "English Score",
     y = "Density"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -304,9 +344,10 @@ ggplot(data = exam_data,
     color = "#1F1F1F",
     linewidth = 0.35,
     alpha = 0.8,
-    outlier.color = "#A66A4C",
+    outlier.color = "#D95F02",
     outlier.size = 2
   ) +
+  scale_fill_manual(values = gender_palette) +
   labs(
     title = "English Scores by Gender",
     subtitle = "Comparing median, spread, and possible outliers",
@@ -314,7 +355,7 @@ ggplot(data = exam_data,
     y = "English Score",
     fill = "Gender"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     legend.position = "none",
     plot.title = element_text(face = "bold", size = 14),
@@ -343,9 +384,10 @@ ggplot(data = exam_data,
     color = "#1F1F1F",
     fill = "white",
     alpha = 0.7,
-    outlier.color = "#A66A4C",
+    outlier.color = "#D95F02",
     outlier.size = 1.8
   ) +
+  scale_fill_manual(values = gender_palette) +
   labs(
     title = "English Score Shape by Gender",
     subtitle = "Violin plot with a compact boxplot overlay",
@@ -353,7 +395,7 @@ ggplot(data = exam_data,
     y = "English Score",
     fill = "Gender"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     legend.position = "none",
     plot.title = element_text(face = "bold", size = 14),
@@ -382,7 +424,7 @@ ggplot(data = exam_data,
     x = "Maths Score",
     y = "English Score"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -407,8 +449,8 @@ ggplot(data = exam_data,
   geom_smooth(
     method = "lm",
     se = TRUE,
-    color = "#A66A4C",
-    fill = "#D8B8A2",
+    color = "#D95F02",
+    fill = "#F2A65A",
     linewidth = 0.8
   ) +
   labs(
@@ -417,7 +459,7 @@ ggplot(data = exam_data,
     x = "Maths Score",
     y = "English Score"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -444,6 +486,7 @@ ggplot(data = exam_data,
     alpha = 0.8,
     width = 0.6
   ) +
+  scale_fill_manual(values = gender_palette) +
   labs(
     title = "Mean English Score by Gender",
     subtitle = "Using stat_summary() to calculate group means",
@@ -451,7 +494,7 @@ ggplot(data = exam_data,
     y = "Mean English Score",
     fill = "Gender"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     legend.position = "none",
     plot.title = element_text(face = "bold", size = 14),
@@ -484,6 +527,7 @@ ggplot(data = exam_data,
     color = "#1F1F1F",
     linewidth = 0.45
   ) +
+  scale_fill_manual(values = gender_palette) +
   labs(
     title = "Mean English Score by Gender with Error Bars",
     subtitle = "Bars show means; error bars show standard error",
@@ -491,7 +535,7 @@ ggplot(data = exam_data,
     y = "Mean English Score",
     fill = "Gender"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     legend.position = "none",
     plot.title = element_text(face = "bold", size = 14),
@@ -525,7 +569,7 @@ ggplot(data = exam_data,
     x = "English Score",
     y = "Number of Students"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -546,7 +590,7 @@ ggplot(data = exam_data,
   geom_histogram(
     binwidth = 5,
     boundary = 0,
-    fill = "#A66A4C",
+    fill = "#D95F02",
     color = "#1F1F1F",
     linewidth = 0.3
   ) +
@@ -557,7 +601,7 @@ ggplot(data = exam_data,
     x = "English Score",
     y = "Number of Students"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -590,7 +634,7 @@ ggplot(data = race_count,
     x = "Race",
     y = "Number of Students"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -622,7 +666,7 @@ ggplot(data = exam_data,
     x = "Maths Score",
     y = "English Score"
   ) +
-  theme_minimal() +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 10),
@@ -649,8 +693,8 @@ ggplot(data = exam_data,
   geom_smooth(
     method = "lm",
     se = TRUE,
-    color = "#A66A4C",
-    fill = "#D8B8A2",
+    color = "#D95F02",
+    fill = "#F2A65A",
     linewidth = 0.8
   ) +
   labs(
@@ -659,7 +703,7 @@ ggplot(data = exam_data,
     x = "Maths Score",
     y = "English Score"
   ) +
-  theme_minimal(base_size = 12) +
+  vaa_chart_theme +
   theme(
     plot.title = element_text(face = "bold", size = 15),
     plot.subtitle = element_text(size = 10, color = "grey30"),
