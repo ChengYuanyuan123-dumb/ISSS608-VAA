@@ -183,7 +183,7 @@ gt_market <- market_summary %>%
   ) %>%
   data_color(
     columns = c(sales_gap, profit_gap, margin_gap),
-    palette = c("#B03A2E", "white", "#2A6F6F"),
+    palette = c("#D95F02", "white", "#2A6F6F"),
     domain = NULL
   ) %>%
   tab_style(
@@ -210,9 +210,9 @@ gap_style <- function(value) {
   }
 
   if (value >= 0) {
-    list(color = "#1B5E20", fontWeight = "600")
+    list(color = "#2A6F6F", fontWeight = "600")
   } else {
-    list(color = "#B03A2E", fontWeight = "600")
+    list(color = "#D95F02", fontWeight = "600")
   }
 }
 ```
@@ -277,7 +277,7 @@ product_summary %>%
   ggplot(aes(profit_gap, Product, fill = profit_gap >= 0)) +
   geom_col(width = 0.68) +
   scale_x_continuous(labels = dollar) +
-  scale_fill_manual(values = c("TRUE" = "#2A6F6F", "FALSE" = "#B03A2E"), guide = "none") +
+  scale_fill_manual(values = c("TRUE" = "#2A6F6F", "FALSE" = "#D95F02"), guide = "none") +
   labs(
     title = "Largest Product Profit Gaps",
     x = "Profit minus budget profit",
@@ -298,4 +298,3 @@ product_summary %>%
 ## References
 
 - R4VA chapter: <https://r4va.netlify.app/chap31>
-

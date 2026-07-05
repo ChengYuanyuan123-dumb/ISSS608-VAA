@@ -180,7 +180,7 @@ ggplot() +
     stroke = 0.25
   ) +
   scale_size_area(max_size = 12, labels = comma) +
-  scale_fill_manual(values = c("#2A6F6F", "#D95F02", "#E6B655", "#6A5ACD")) +
+  scale_fill_manual(values = c("#2A6F6F", "#D95F02", "#F2A65A", "#7570B3")) +
   labs(
     title = "Outlet Type and Winnings",
     size = "Winnings",
@@ -275,4 +275,3 @@ ggplot() +
 ## References
 
 - R4VA chapter: <https://r4va.netlify.app/chap22>
-

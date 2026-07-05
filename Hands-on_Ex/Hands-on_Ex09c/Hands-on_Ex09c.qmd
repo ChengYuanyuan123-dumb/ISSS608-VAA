@@ -168,9 +168,9 @@ ggplot(nga_percentile) +
   scale_fill_manual(
     values = c(
       "Bottom 1%" = "#2A6F6F",
-      "Bottom 10%" = "#8AC1B8",
+      "Bottom 10%" = "#A8DADC",
       "Middle 80%" = "grey88",
-      "Top 10%" = "#E6B655",
+      "Top 10%" = "#F2A65A",
       "Top 1%" = "#D95F02"
     ),
     na.value = "grey95"
@@ -229,12 +229,12 @@ ggplot(nga_box) +
   geom_sf(aes(fill = box_class), colour = "grey80", linewidth = 0.05) +
   scale_fill_manual(
     values = c(
-      "Low outlier" = "#1B4F72",
-      "Lower quartile" = "#76B7B2",
-      "Below median" = "#DDEBE9",
-      "Above median" = "#F5D782",
-      "Upper quartile" = "#E58E26",
-      "High outlier" = "#B03A2E"
+      "Low outlier" = "#7570B3",
+      "Lower quartile" = "#A8DADC",
+      "Below median" = "#F7FBFF",
+      "Above median" = "#F2A65A",
+      "Upper quartile" = "#D95F02",
+      "High outlier" = "#1F1F1F"
     ),
     na.value = "grey95"
   ) +
@@ -283,4 +283,3 @@ nga_rate %>%
 ## References
 
 - R4VA chapter: <https://r4va.netlify.app/chap23>
-
