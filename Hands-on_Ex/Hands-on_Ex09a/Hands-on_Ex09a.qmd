@@ -1,0 +1,317 @@
+---
+title: "Hands-on_Ex09a"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Choropleth Mapping with R
+
+## Overview
+
+A choropleth map shades geographic areas according to a data value. It is useful when the variable belongs to an area, such as population by subzone, rate by district or count by planning area.
+
+In this hands-on exercise, Singapore subzone geometry is joined with resident population data. The focus is on importing geospatial and aspatial data, preparing a spatial join key, building choropleth maps and comparing different classification methods.
+
+By the end of this exercise, we should be able to:
+
+- import shapefile data using `sf`;
+- import population attribute data using `readr`;
+- join attribute values to map polygons;
+- build choropleth maps with `ggplot2`;
+- compare equal interval, quantile and Jenks classification;
+- map selected areas that meet a clear criterion.
+
+## Installing and launching R packages
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  tidyverse,
+  sf,
+  classInt,
+  scales,
+  patchwork,
+  knitr
+)
+```
+
+## Importing Data into R
+
+### The Data
+
+Two data sources are used:
+
+- `MP14_SUBZONE_WEB_PL.shp` contains Singapore Master Plan 2014 subzone boundaries.
+- `respopagesextod2011to2020.csv` contains population records by planning area, subzone, age group, sex, type of dwelling and year.
+
+### Importing geospatial data into R
+
+```{r}
+shp_path <- "data/geospatial/MP14_SUBZONE_WEB_PL.shp"
+
+if (!file.exists(shp_path)) {
+  stop("The subzone shapefile is missing from data/geospatial.")
+}
+
+mpsz <- st_read(shp_path, quiet = TRUE) %>%
+  st_make_valid()
+
+glimpse(mpsz)
+```
+
+```{r}
+st_crs(mpsz)
+```
+
+### Importing attribute data into R
+
+```{r}
+pop_path <- "data/aspatial/respopagesextod2011to2020.csv"
+
+if (!file.exists(pop_path)) {
+  stop("The population CSV is missing from data/aspatial.")
+}
+
+pop_raw <- read_csv(pop_path, show_col_types = FALSE)
+
+glimpse(pop_raw)
+```
+
+### Data Preparation
+
+The map uses total population in 2020. The population file is aggregated by planning area and subzone, then joined to the subzone polygons.
+
+```{r}
+pop_2020 <- pop_raw %>%
+  filter(Time == 2020) %>%
+  group_by(
+    PA = str_to_upper(PA),
+    SZ = str_to_upper(SZ)
+  ) %>%
+  summarise(Pop = sum(Pop, na.rm = TRUE), .groups = "drop")
+
+mpsz_clean <- mpsz %>%
+  mutate(
+    PLN_AREA_N = str_to_upper(PLN_AREA_N),
+    SUBZONE_N = str_to_upper(SUBZONE_N)
+  )
+
+mpszpop <- mpsz_clean %>%
+  left_join(
+    pop_2020,
+    by = c("PLN_AREA_N" = "PA", "SUBZONE_N" = "SZ")
+  ) %>%
+  mutate(
+    Pop = replace_na(Pop, 0),
+    area_sqkm = as.numeric(st_area(.)) / 1000000,
+    pop_density = if_else(area_sqkm > 0, Pop / area_sqkm, NA_real_)
+  )
+```
+
+```{r}
+mpszpop %>%
+  st_drop_geometry() %>%
+  select(PLN_AREA_N, SUBZONE_N, REGION_N, Pop, area_sqkm, pop_density) %>%
+  arrange(desc(Pop)) %>%
+  head(10) %>%
+  knitr::kable(format = "html", digits = 1)
+```
+
+## Choropleth Mapping Geospatial Data
+
+### Plotting a choropleth map quickly
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r fig.width=8, fig.height=7}
+ggplot(mpszpop) +
+  geom_sf(aes(fill = Pop), colour = "white", linewidth = 0.08) +
+  scale_fill_gradient(
+    low = "#F2F0E6",
+    high = "#2A6F6F",
+    labels = comma
+  ) +
+  labs(
+    title = "Singapore Resident Population by Subzone, 2020",
+    fill = "Population"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot(mpszpop) +
+  geom_sf(aes(fill = Pop), colour = "white", linewidth = 0.08) +
+  scale_fill_gradient(
+    low = "#F2F0E6",
+    high = "#2A6F6F",
+    labels = comma
+  ) +
+  labs(
+    title = "Singapore Resident Population by Subzone, 2020",
+    fill = "Population"
+  ) +
+  theme_void(base_size = 12)
+```
+
+:::
+
+This first map uses a continuous colour scale. It is simple, but it can hide important differences when the variable is skewed.
+
+### Data classification methods
+
+Different classification methods can lead to different visual impressions. The helper function below creates map classes using `classInt`.
+
+```{r}
+make_class <- function(x, style, n = 5) {
+  values <- x[!is.na(x)]
+  breaks <- classIntervals(values, n = n, style = style)$brks %>%
+    unique()
+
+  cut(
+    x,
+    breaks = breaks,
+    include.lowest = TRUE,
+    dig.lab = 10
+  )
+}
+
+mpszpop <- mpszpop %>%
+  mutate(
+    equal_class = make_class(Pop, "equal"),
+    quantile_class = make_class(Pop, "quantile"),
+    jenks_class = make_class(Pop, "jenks")
+  )
+```
+
+```{r}
+plot_choro_class <- function(data, class_col, title) {
+  ggplot(data) +
+    geom_sf(aes(fill = .data[[class_col]]), colour = "white", linewidth = 0.06) +
+    scale_fill_brewer(palette = "YlGnBu", na.value = "grey90") +
+    labs(title = title, fill = NULL) +
+    theme_void(base_size = 10) +
+    theme(
+      plot.title = element_text(face = "bold", size = 11),
+      legend.position = "bottom",
+      legend.text = element_text(size = 6)
+    )
+}
+```
+
+```{r fig.width=11, fig.height=8}
+plot_choro_class(mpszpop, "equal_class", "Equal Interval") +
+  plot_choro_class(mpszpop, "quantile_class", "Quantile") +
+  plot_choro_class(mpszpop, "jenks_class", "Jenks Natural Breaks")
+```
+
+The same population values are used in all three maps. The change in appearance comes from the classification method, not from the underlying data.
+
+### Colour Scheme
+
+Sequential palettes work well for ordered numerical values. In the map below, a single-hue scale is used for population density so dense areas stand out.
+
+```{r fig.width=8, fig.height=7}
+ggplot(mpszpop) +
+  geom_sf(aes(fill = pop_density), colour = "white", linewidth = 0.08) +
+  scale_fill_viridis_c(
+    option = "mako",
+    labels = label_number(scale_cut = cut_short_scale()),
+    na.value = "grey90"
+  ) +
+  labs(
+    title = "Population Density by Subzone, 2020",
+    subtitle = "Density adjusts population count by polygon area",
+    fill = "People per sq km"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+## Mapping spatial objects meeting a selection criterion
+
+The map below highlights subzones in the top 10 percent of population density. This is a small extension from a general choropleth map to a targeted selection map.
+
+```{r}
+density_cutoff <- quantile(mpszpop$pop_density, 0.90, na.rm = TRUE)
+
+dense_subzones <- mpszpop %>%
+  mutate(
+    density_group = if_else(pop_density >= density_cutoff, "Top 10%", "Other subzones")
+  )
+```
+
+```{r fig.width=8, fig.height=7}
+ggplot(dense_subzones) +
+  geom_sf(aes(fill = density_group), colour = "white", linewidth = 0.08) +
+  scale_fill_manual(
+    values = c("Top 10%" = "#D95F02", "Other subzones" = "grey88")
+  ) +
+  labs(
+    title = "Subzones with High Population Density",
+    subtitle = "Highlighted areas are in the top 10 percent of density",
+    fill = NULL
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## My Extension: Planning area summary
+
+The map tells us where population is concentrated, but a table makes it easier to identify the largest planning areas.
+
+```{r}
+mpszpop %>%
+  st_drop_geometry() %>%
+  group_by(PLN_AREA_N, REGION_N) %>%
+  summarise(
+    population = sum(Pop, na.rm = TRUE),
+    area_sqkm = sum(area_sqkm, na.rm = TRUE),
+    density = population / area_sqkm,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(population)) %>%
+  head(12) %>%
+  mutate(
+    population = comma(population),
+    area_sqkm = round(area_sqkm, 2),
+    density = comma(round(density))
+  ) %>%
+  knitr::kable(format = "html")
+```
+
+## Key Takeaways
+
+- Choropleth mapping requires a reliable join between attribute data and polygon geometry.
+- Classification method affects interpretation, so the choice should match the analytical purpose.
+- Population density can tell a different story from total population because polygon areas differ.
+- Selection maps are useful when the goal is to highlight areas that meet a condition.
+
+## References
+
+- R4VA chapter: <https://r4va.netlify.app/chap21>
+

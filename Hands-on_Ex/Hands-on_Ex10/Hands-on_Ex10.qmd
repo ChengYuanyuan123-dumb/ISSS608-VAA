@@ -1,0 +1,301 @@
+---
+title: "Hands-on_Ex10"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Information Dashboard Design: R methods
+
+## Overview
+
+A dashboard brings several compact views together so readers can scan status, compare performance and find exceptions quickly. In R, dashboard-style outputs can be built from data summaries, small plots, formatted tables and interactive tables.
+
+In this hands-on exercise, the Coffee Chain dataset is used to create a small sales performance report. The supplied Microsoft Access database is kept in the data folder, but the exercise uses the prepared RDS version to avoid driver issues on macOS.
+
+By the end of this exercise, we should be able to:
+
+- import a prepared dashboard dataset;
+- create performance summaries against budget;
+- build bullet-chart style comparisons in `ggplot2`;
+- draw small multiple sparklines;
+- create a static report table with `gt`;
+- create an interactive table with `reactable`.
+
+## Installing and launching R packages
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  tidyverse,
+  lubridate,
+  scales,
+  gt,
+  reactable,
+  htmltools,
+  knitr
+)
+```
+
+## Importing Microsoft Access database
+
+### The data set
+
+The exercise folder contains two files:
+
+- `Coffee Chain.mdb`, the original Microsoft Access database;
+- `CoffeeChain.rds`, a prepared R object with the same working data used for this reproducible page.
+
+Using the RDS file keeps the page portable because importing `.mdb` files on macOS can depend on external database drivers.
+
+```{r}
+coffee_path <- "data/rds/CoffeeChain.rds"
+
+if (!file.exists(coffee_path)) {
+  stop("CoffeeChain.rds is missing from data/rds.")
+}
+
+coffee <- readRDS(coffee_path) %>%
+  mutate(
+    Date = as.Date(Date),
+    month = floor_date(Date, "month"),
+    profit_gap = Profit - `Budget Profit`,
+    sales_gap = Sales - `Budget Sales`,
+    margin_gap = Margin - `Budget Margin`
+  )
+
+glimpse(coffee)
+```
+
+```{r}
+coffee %>%
+  head(8) %>%
+  knitr::kable(format = "html")
+```
+
+### Data Preparation
+
+The dashboard summaries compare actual sales and profit against budget by market.
+
+```{r}
+market_summary <- coffee %>%
+  group_by(Market) %>%
+  summarise(
+    Sales = sum(Sales, na.rm = TRUE),
+    `Budget Sales` = sum(`Budget Sales`, na.rm = TRUE),
+    Profit = sum(Profit, na.rm = TRUE),
+    `Budget Profit` = sum(`Budget Profit`, na.rm = TRUE),
+    Margin = sum(Margin, na.rm = TRUE),
+    `Budget Margin` = sum(`Budget Margin`, na.rm = TRUE),
+    sales_gap = Sales - `Budget Sales`,
+    profit_gap = Profit - `Budget Profit`,
+    margin_gap = Margin - `Budget Margin`,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Sales))
+
+market_summary %>%
+  knitr::kable(format = "html")
+```
+
+### Bullet chart in ggplot2
+
+A bullet chart compares actual performance against a target in a compact form. Here, the bar shows actual sales and the vertical marker shows budget sales.
+
+```{r fig.width=8, fig.height=5}
+ggplot(market_summary, aes(y = fct_reorder(Market, Sales))) +
+  geom_col(aes(x = Sales), fill = "#2A6F6F", width = 0.62) +
+  geom_point(aes(x = `Budget Sales`), shape = 124, size = 9, colour = "#D95F02") +
+  scale_x_continuous(labels = dollar) +
+  labs(
+    title = "Sales Against Budget by Market",
+    subtitle = "Bars show actual sales; orange markers show budget sales",
+    x = "Sales",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## Plotting sparklines using ggplot2
+
+### Preparing the data
+
+```{r}
+monthly_market <- coffee %>%
+  group_by(Market, month) %>%
+  summarise(
+    Sales = sum(Sales, na.rm = TRUE),
+    `Budget Sales` = sum(`Budget Sales`, na.rm = TRUE),
+    Profit = sum(Profit, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+### Sparklines in ggplot2
+
+Small multiple line charts act like dashboard sparklines. They preserve the trend for each market while using very little visual space.
+
+```{r fig.width=10, fig.height=6}
+ggplot(monthly_market, aes(month, Sales)) +
+  geom_line(colour = "#2A6F6F", linewidth = 0.7) +
+  geom_line(aes(y = `Budget Sales`), colour = "#D95F02", linetype = "dashed", linewidth = 0.55) +
+  facet_wrap(~Market, scales = "free_y") +
+  scale_y_continuous(labels = dollar_format(scale_cut = cut_short_scale())) +
+  labs(
+    title = "Monthly Sales Sparklines by Market",
+    subtitle = "Solid line is actual sales; dashed line is budget sales",
+    x = NULL,
+    y = "Sales"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+## Static Information Dashboard Design: gt methods
+
+The `gt` package is used to create a compact market performance table. Colour is applied to the gap columns so positive and negative performance can be scanned quickly.
+
+```{r}
+gt_market <- market_summary %>%
+  gt() %>%
+  tab_header(
+    title = "Coffee Chain Market Performance",
+    subtitle = "Actual performance compared with budget"
+  ) %>%
+  fmt_currency(
+    columns = c(Sales, `Budget Sales`, Profit, `Budget Profit`, Margin, `Budget Margin`, sales_gap, profit_gap, margin_gap),
+    currency = "USD",
+    decimals = 0
+  ) %>%
+  data_color(
+    columns = c(sales_gap, profit_gap, margin_gap),
+    palette = c("#B03A2E", "white", "#2A6F6F"),
+    domain = NULL
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_column_labels(everything())
+  )
+
+gt_market
+```
+
+## Interactive Information Dashboard Design: reactable methods
+
+Interactive tables are useful when readers need sorting, filtering and compact comparison. The table below keeps the market-level view but allows sorting by any metric.
+
+```{r}
+sales_palette <- col_numeric(
+  palette = c("#F2F0E6", "#2A6F6F"),
+  domain = market_summary$Sales
+)
+
+gap_style <- function(value) {
+  if (is.na(value)) {
+    return(list())
+  }
+
+  if (value >= 0) {
+    list(color = "#1B5E20", fontWeight = "600")
+  } else {
+    list(color = "#B03A2E", fontWeight = "600")
+  }
+}
+```
+
+```{r}
+reactable(
+  market_summary,
+  searchable = TRUE,
+  defaultPageSize = 6,
+  columns = list(
+    Sales = colDef(
+      format = colFormat(currency = "USD", separators = TRUE, digits = 0),
+      style = function(value) {
+        list(background = sales_palette(value))
+      }
+    ),
+    `Budget Sales` = colDef(format = colFormat(currency = "USD", separators = TRUE, digits = 0)),
+    Profit = colDef(format = colFormat(currency = "USD", separators = TRUE, digits = 0)),
+    `Budget Profit` = colDef(format = colFormat(currency = "USD", separators = TRUE, digits = 0)),
+    Margin = colDef(format = colFormat(currency = "USD", separators = TRUE, digits = 0)),
+    `Budget Margin` = colDef(format = colFormat(currency = "USD", separators = TRUE, digits = 0)),
+    sales_gap = colDef(
+      name = "Sales Gap",
+      format = colFormat(currency = "USD", separators = TRUE, digits = 0),
+      style = gap_style
+    ),
+    profit_gap = colDef(
+      name = "Profit Gap",
+      format = colFormat(currency = "USD", separators = TRUE, digits = 0),
+      style = gap_style
+    ),
+    margin_gap = colDef(
+      name = "Margin Gap",
+      format = colFormat(currency = "USD", separators = TRUE, digits = 0),
+      style = gap_style
+    )
+  )
+)
+```
+
+## My Extension: Product performance view
+
+The dashboard can also be viewed by product. This extension identifies the products with the largest profit gap.
+
+```{r}
+product_summary <- coffee %>%
+  group_by(`Product Type`, Product) %>%
+  summarise(
+    Sales = sum(Sales, na.rm = TRUE),
+    Profit = sum(Profit, na.rm = TRUE),
+    `Budget Profit` = sum(`Budget Profit`, na.rm = TRUE),
+    profit_gap = Profit - `Budget Profit`,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(profit_gap))
+```
+
+```{r fig.width=9, fig.height=6}
+product_summary %>%
+  slice_max(abs(profit_gap), n = 12, with_ties = FALSE) %>%
+  mutate(Product = fct_reorder(Product, profit_gap)) %>%
+  ggplot(aes(profit_gap, Product, fill = profit_gap >= 0)) +
+  geom_col(width = 0.68) +
+  scale_x_continuous(labels = dollar) +
+  scale_fill_manual(values = c("TRUE" = "#2A6F6F", "FALSE" = "#B03A2E"), guide = "none") +
+  labs(
+    title = "Largest Product Profit Gaps",
+    x = "Profit minus budget profit",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## Key Takeaways
+
+- Dashboard views should combine summary, comparison and exception-finding.
+- Bullet charts are compact ways to compare actual values against targets.
+- Sparklines are useful when trends need to fit into a small space.
+- Static `gt` tables are good for presentation, while `reactable` tables support exploration.
+- A prepared RDS file is a practical reproducible alternative when Access drivers are unavailable.
+
+## References
+
+- R4VA chapter: <https://r4va.netlify.app/chap31>
+

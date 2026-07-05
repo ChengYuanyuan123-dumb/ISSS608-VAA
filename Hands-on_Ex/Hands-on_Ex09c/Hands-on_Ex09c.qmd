@@ -1,0 +1,286 @@
+---
+title: "Hands-on_Ex09c"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Analytical Mapping
+
+## Overview
+
+Analytical mapping goes beyond displaying a single count. It uses derived measures, classification rules and outlier logic to support comparison across areas.
+
+In this hands-on exercise, Nigerian water point data is used to map non-functional water points. The exercise starts with a count map, then moves to rate maps, percentile maps and box maps.
+
+By the end of this exercise, we should be able to:
+
+- import a prepared `sf` object from an RDS file;
+- derive functional and non-functional rates;
+- map counts and rates;
+- build percentile classes;
+- create a box-map classification based on the interquartile range;
+- identify areas that are unusually high or low.
+
+## Installing and launching R packages
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  tidyverse,
+  sf,
+  scales,
+  knitr
+)
+```
+
+## Importing data
+
+```{r}
+nga_path <- "data/rds/NGA_wp (1).rds"
+
+if (!file.exists(nga_path)) {
+  stop("NGA_wp (1).rds is missing from data/rds.")
+}
+
+nga_wp <- readRDS(nga_path) %>%
+  st_make_valid()
+
+glimpse(nga_wp)
+```
+
+```{r}
+nga_wp %>%
+  st_drop_geometry() %>%
+  head(8) %>%
+  knitr::kable(format = "html")
+```
+
+## Basic Choropleth Mapping
+
+### Visualising distribution of non-functional water point
+
+```{r fig.width=9, fig.height=7}
+ggplot(nga_wp) +
+  geom_sf(aes(fill = wp_nonfunctional), colour = "grey80", linewidth = 0.05) +
+  scale_fill_gradient(
+    low = "#F2F0E6",
+    high = "#2A6F6F",
+    labels = comma
+  ) +
+  labs(
+    title = "Non-functional Water Points in Nigeria",
+    fill = "Count"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+The count map highlights areas with more non-functional water points. However, areas with many total water points can naturally have larger counts, so rate maps are needed for fairer comparison.
+
+## Choropleth Map for Rates
+
+### Deriving proportion of functional and non-functional water points
+
+```{r}
+nga_rate <- nga_wp %>%
+  mutate(
+    pct_functional = if_else(total_wp > 0, wp_functional / total_wp, NA_real_),
+    pct_nonfunctional = if_else(total_wp > 0, wp_nonfunctional / total_wp, NA_real_),
+    pct_unknown = if_else(total_wp > 0, wp_unknown / total_wp, NA_real_)
+  )
+```
+
+```{r}
+nga_rate %>%
+  st_drop_geometry() %>%
+  select(ADM2_EN, ADM1_EN, total_wp, wp_functional, wp_nonfunctional, pct_nonfunctional) %>%
+  arrange(desc(pct_nonfunctional)) %>%
+  head(10) %>%
+  mutate(pct_nonfunctional = percent(pct_nonfunctional, accuracy = 0.1)) %>%
+  knitr::kable(format = "html")
+```
+
+### Plotting map of rate
+
+```{r fig.width=9, fig.height=7}
+ggplot(nga_rate) +
+  geom_sf(aes(fill = pct_nonfunctional), colour = "grey80", linewidth = 0.05) +
+  scale_fill_gradient(
+    low = "#F2F0E6",
+    high = "#D95F02",
+    labels = percent,
+    na.value = "grey90"
+  ) +
+  labs(
+    title = "Non-functional Water Point Rate",
+    subtitle = "Rate is calculated as non-functional water points divided by total water points",
+    fill = "Rate"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+## Extreme Value Maps
+
+### Percentile Map
+
+Percentile mapping highlights values at the tails of a distribution. The classes below separate the bottom 1 percent, bottom 10 percent, middle range, top 10 percent and top 1 percent.
+
+```{r}
+nga_percentile <- nga_rate %>%
+  mutate(
+    pct_rank_nonfunctional = percent_rank(pct_nonfunctional),
+    percentile_class = case_when(
+      is.na(pct_rank_nonfunctional) ~ NA_character_,
+      pct_rank_nonfunctional <= 0.01 ~ "Bottom 1%",
+      pct_rank_nonfunctional <= 0.10 ~ "Bottom 10%",
+      pct_rank_nonfunctional < 0.90 ~ "Middle 80%",
+      pct_rank_nonfunctional < 0.99 ~ "Top 10%",
+      TRUE ~ "Top 1%"
+    ),
+    percentile_class = factor(
+      percentile_class,
+      levels = c("Bottom 1%", "Bottom 10%", "Middle 80%", "Top 10%", "Top 1%")
+    )
+  )
+```
+
+```{r fig.width=9, fig.height=7}
+ggplot(nga_percentile) +
+  geom_sf(aes(fill = percentile_class), colour = "grey80", linewidth = 0.05) +
+  scale_fill_manual(
+    values = c(
+      "Bottom 1%" = "#2A6F6F",
+      "Bottom 10%" = "#8AC1B8",
+      "Middle 80%" = "grey88",
+      "Top 10%" = "#E6B655",
+      "Top 1%" = "#D95F02"
+    ),
+    na.value = "grey95"
+  ) +
+  labs(
+    title = "Percentile Map of Non-functional Water Point Rate",
+    fill = "Class"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+### Box map
+
+A box map applies the logic of a boxplot to a map. It highlights areas beyond the interquartile range as possible spatial outliers.
+
+```{r}
+rate_values <- nga_rate$pct_nonfunctional
+q1 <- quantile(rate_values, 0.25, na.rm = TRUE)
+q2 <- quantile(rate_values, 0.50, na.rm = TRUE)
+q3 <- quantile(rate_values, 0.75, na.rm = TRUE)
+iqr_value <- q3 - q1
+lower_fence <- q1 - 1.5 * iqr_value
+upper_fence <- q3 + 1.5 * iqr_value
+
+nga_box <- nga_rate %>%
+  mutate(
+    box_class = case_when(
+      is.na(pct_nonfunctional) ~ NA_character_,
+      pct_nonfunctional < lower_fence ~ "Low outlier",
+      pct_nonfunctional < q1 ~ "Lower quartile",
+      pct_nonfunctional < q2 ~ "Below median",
+      pct_nonfunctional < q3 ~ "Above median",
+      pct_nonfunctional <= upper_fence ~ "Upper quartile",
+      TRUE ~ "High outlier"
+    ),
+    box_class = factor(
+      box_class,
+      levels = c(
+        "Low outlier",
+        "Lower quartile",
+        "Below median",
+        "Above median",
+        "Upper quartile",
+        "High outlier"
+      )
+    )
+  )
+```
+
+```{r fig.width=9, fig.height=7}
+ggplot(nga_box) +
+  geom_sf(aes(fill = box_class), colour = "grey80", linewidth = 0.05) +
+  scale_fill_manual(
+    values = c(
+      "Low outlier" = "#1B4F72",
+      "Lower quartile" = "#76B7B2",
+      "Below median" = "#DDEBE9",
+      "Above median" = "#F5D782",
+      "Upper quartile" = "#E58E26",
+      "High outlier" = "#B03A2E"
+    ),
+    na.value = "grey95"
+  ) +
+  labs(
+    title = "Box Map of Non-functional Water Point Rate",
+    subtitle = "High outliers are above Q3 plus 1.5 times the IQR",
+    fill = "Box-map class"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## My Extension: Rate versus denominator
+
+Rate maps can exaggerate small denominators. The scatterplot below checks whether high non-functional rates are attached to areas with very few total water points.
+
+```{r fig.width=8, fig.height=5}
+nga_rate %>%
+  st_drop_geometry() %>%
+  filter(total_wp > 0) %>%
+  ggplot(aes(total_wp, pct_nonfunctional)) +
+  geom_point(alpha = 0.45, colour = "#2A6F6F") +
+  geom_smooth(method = "loess", se = FALSE, colour = "#D95F02") +
+  scale_x_log10(labels = comma) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Checking Rate Stability",
+    subtitle = "Small denominators can create very high or very low rates",
+    x = "Total water points, log scale",
+    y = "Non-functional rate"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## Key Takeaways
+
+- Count maps and rate maps answer different questions.
+- Percentile maps are useful for highlighting distribution tails.
+- Box maps apply outlier logic to spatial data.
+- Denominators matter: a high rate in a very small area should be interpreted carefully.
+
+## References
+
+- R4VA chapter: <https://r4va.netlify.app/chap23>
+

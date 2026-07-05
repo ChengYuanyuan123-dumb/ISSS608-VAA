@@ -1,0 +1,435 @@
+---
+title: "Hands-on_Ex07a"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Modelling, Visualising and Analysing Network Data with R
+
+## Overview
+
+Network data is useful when the relationship between records is as important as the records themselves. Instead of looking only at individual people, departments or messages, a network view lets us examine who connects to whom, which links are frequent, and which actors sit near the centre of communication.
+
+In this hands-on exercise, the GAStech email data is used to build a directed communication network. The focus is on preparing edge and node files, creating a graph object, plotting static network graphs, calculating centrality measures, detecting communities and producing an interactive network graph.
+
+By the end of this exercise, we should be able to:
+
+- import node and edge files for a network;
+- clean time and attribute fields before graph construction;
+- create a `tbl_graph` object with `tidygraph`;
+- visualise a network with `ggraph`;
+- compare centrality measures across actors;
+- create an interactive network graph with `visNetwork`.
+
+## Installing and launching R packages
+
+The main packages used here are `tidyverse` for data wrangling, `tidygraph` and `igraph` for network modelling, `ggraph` for static network visualisation and `visNetwork` for interactive exploration.
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  tidyverse,
+  lubridate,
+  tidygraph,
+  ggraph,
+  igraph,
+  visNetwork,
+  scales,
+  DT,
+  knitr
+)
+```
+
+## The Data
+
+Two files are used:
+
+- `GAStech_email_edge-v2.csv` records the sender, recipient, date, time and message subject.
+- `GAStech_email_node.csv` records each employee's id, name, department and title.
+
+The edge file describes relationships. The node file describes the actors in the network.
+
+### Importing network data from files
+
+```{r}
+edge_path <- "data/GAStech_email_edge-v2.csv"
+node_path <- "data/GAStech_email_node.csv"
+
+if (!file.exists(edge_path) || !file.exists(node_path)) {
+  stop("The GAStech edge or node file is missing from the data folder.")
+}
+
+edges_raw <- read_csv(edge_path, show_col_types = FALSE)
+nodes_raw <- read_csv(node_path, show_col_types = FALSE)
+```
+
+```{r}
+glimpse(edges_raw)
+```
+
+```{r}
+glimpse(nodes_raw)
+```
+
+```{r}
+knitr::kable(head(edges_raw), format = "html")
+```
+
+### Wrangling time and attributes
+
+The original date and time fields are stored separately. They are combined into one timestamp so that the network can later be filtered by time if needed.
+
+```{r}
+edges <- edges_raw %>%
+  mutate(
+    source = as.integer(source),
+    target = as.integer(target),
+    sent_at = lubridate::mdy_hms(
+      paste(SentDate, SentTime),
+      tz = "UTC",
+      quiet = TRUE
+    ),
+    sent_date = as.Date(sent_at),
+    MainSubject = replace_na(MainSubject, "Unknown subject")
+  ) %>%
+  filter(!is.na(source), !is.na(target), source != target)
+
+nodes <- nodes_raw %>%
+  mutate(
+    id = as.integer(id),
+    Department = replace_na(Department, "Unknown department"),
+    Title = replace_na(Title, "Unknown title")
+  )
+```
+
+The email records are then aggregated so each sender-recipient pair has one row and a `weight` showing how many messages were exchanged in that direction.
+
+```{r}
+email_edges <- edges %>%
+  count(
+    source,
+    target,
+    sourceLabel,
+    targetLabel,
+    MainSubject,
+    name = "weight"
+  ) %>%
+  arrange(desc(weight))
+
+email_edges_pair <- edges %>%
+  count(source, target, sourceLabel, targetLabel, name = "weight") %>%
+  arrange(desc(weight))
+```
+
+```{r}
+knitr::kable(head(email_edges_pair, 10), format = "html")
+```
+
+## Creating network objects using tidygraph
+
+### The tbl_graph object
+
+The `tbl_graph()` function stores the node and edge tables as one graph object. The `node_key = "id"` argument tells R that the edge ids should be matched to the `id` column in the node table.
+
+```{r}
+email_graph <- tbl_graph(
+  nodes = nodes,
+  edges = email_edges_pair,
+  directed = TRUE,
+  node_key = "id"
+)
+
+email_graph
+```
+
+### Computing centrality indices
+
+Centrality measures help identify actors who are strongly connected to the rest of the network. In this exercise:
+
+- in-degree counts how many people send messages to an actor;
+- out-degree counts how many people an actor sends messages to;
+- betweenness highlights actors who sit on many shortest paths.
+
+```{r}
+louvain_membership <- igraph::cluster_louvain(
+  igraph::as.undirected(
+    as.igraph(email_graph),
+    mode = "collapse",
+    edge.attr.comb = list(weight = "sum", "ignore")
+  ),
+  weights = igraph::E(
+    igraph::as.undirected(
+      as.igraph(email_graph),
+      mode = "collapse",
+      edge.attr.comb = list(weight = "sum", "ignore")
+    )
+  )$weight
+)$membership
+
+email_graph <- email_graph %>%
+  activate(nodes) %>%
+  mutate(
+    in_degree = centrality_degree(mode = "in"),
+    out_degree = centrality_degree(mode = "out"),
+    total_degree = in_degree + out_degree,
+    betweenness = centrality_betweenness(directed = TRUE),
+    community = factor(louvain_membership)
+  )
+
+centrality_tbl <- email_graph %>%
+  activate(nodes) %>%
+  as_tibble() %>%
+  arrange(desc(total_degree))
+```
+
+```{r}
+centrality_tbl %>%
+  select(label, Department, Title, in_degree, out_degree, total_degree, betweenness, community) %>%
+  head(12) %>%
+  knitr::kable(format = "html", digits = 2)
+```
+
+## Plotting static network graphs with ggraph
+
+The full email network contains many links. For the static graph, the strongest sender-recipient pairs are selected so the structure is readable on the page.
+
+```{r}
+top_edges <- email_edges_pair %>%
+  slice_max(weight, n = 160, with_ties = FALSE)
+
+plot_graph <- tbl_graph(
+  nodes = nodes,
+  edges = top_edges,
+  directed = TRUE,
+  node_key = "id"
+) %>%
+  activate(nodes) %>%
+  mutate(
+    degree = centrality_degree(mode = "all")
+  )
+```
+
+### Plotting a basic network graph
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r fig.width=9, fig.height=7}
+set.seed(608)
+
+ggraph(plot_graph, layout = "fr") +
+  geom_edge_link(
+    aes(width = weight),
+    alpha = 0.25,
+    colour = "grey65",
+    arrow = arrow(length = unit(2, "mm"), type = "closed"),
+    end_cap = circle(2.5, "mm")
+  ) +
+  geom_node_point(
+    aes(size = degree, colour = Department),
+    alpha = 0.9
+  ) +
+  scale_edge_width(range = c(0.2, 1.8), guide = "none") +
+  scale_size(range = c(2, 8), guide = "none") +
+  labs(
+    title = "GAStech Email Network",
+    subtitle = "Top sender-recipient links by email frequency",
+    colour = "Department"
+  ) +
+  theme_graph(base_family = "sans") +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+set.seed(608)
+
+ggraph(plot_graph, layout = "fr") +
+  geom_edge_link(
+    aes(width = weight),
+    alpha = 0.25,
+    colour = "grey65",
+    arrow = arrow(length = unit(2, "mm"), type = "closed"),
+    end_cap = circle(2.5, "mm")
+  ) +
+  geom_node_point(
+    aes(size = degree, colour = Department),
+    alpha = 0.9
+  ) +
+  scale_edge_width(range = c(0.2, 1.8), guide = "none") +
+  scale_size(range = c(2, 8), guide = "none") +
+  labs(
+    title = "GAStech Email Network",
+    subtitle = "Top sender-recipient links by email frequency",
+    colour = "Department"
+  ) +
+  theme_graph(base_family = "sans") +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold")
+  )
+```
+
+:::
+
+The graph shows both the direction and strength of communication. Larger nodes have more connections in the selected network, while thicker edges represent more frequent email exchanges.
+
+### Visualising network metrics
+
+```{r fig.width=8, fig.height=5}
+centrality_tbl %>%
+  slice_max(total_degree, n = 12, with_ties = FALSE) %>%
+  mutate(label = fct_reorder(label, total_degree)) %>%
+  ggplot(aes(total_degree, label, fill = Department)) +
+  geom_col(width = 0.72) +
+  labs(
+    title = "Most Connected Actors in the GAStech Email Network",
+    x = "Total degree",
+    y = NULL,
+    fill = "Department"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## Creating facet graphs
+
+Faceting is useful when the same network contains different types of relationships. Here the strongest email links are split by the main subject category.
+
+```{r}
+subject_edges <- email_edges %>%
+  group_by(MainSubject) %>%
+  slice_max(weight, n = 45, with_ties = FALSE) %>%
+  ungroup()
+
+subject_graph <- tbl_graph(
+  nodes = nodes,
+  edges = subject_edges,
+  directed = TRUE,
+  node_key = "id"
+)
+```
+
+```{r fig.width=10, fig.height=7}
+set.seed(608)
+
+ggraph(subject_graph, layout = "fr") +
+  geom_edge_link(
+    aes(alpha = weight),
+    colour = "#2A6F6F",
+    show.legend = FALSE
+  ) +
+  geom_node_point(size = 1.4, colour = "grey35") +
+  facet_edges(~MainSubject) +
+  labs(
+    title = "Strong Email Links by Message Subject",
+    subtitle = "Facet graphs show how the visible connections change across subject groups"
+  ) +
+  theme_graph(base_family = "sans") +
+  theme(
+    strip.text = element_text(face = "bold", size = 8),
+    plot.title = element_text(face = "bold")
+  )
+```
+
+## Building interactive network graph with visNetwork
+
+Interactive graphs are helpful because labels and connections can be explored by hovering and moving nodes. To keep the browser responsive, the interactive graph uses the same strongest links selected for the static graph.
+
+```{r}
+vis_node_ids <- sort(unique(c(top_edges$source, top_edges$target)))
+
+vis_nodes <- nodes %>%
+  filter(id %in% vis_node_ids) %>%
+  left_join(
+    centrality_tbl %>% select(id, total_degree, betweenness),
+    by = "id"
+  ) %>%
+  transmute(
+    id,
+    label,
+    group = Department,
+    value = pmax(total_degree, 1),
+    title = paste0(
+      "<b>", label, "</b><br>",
+      Department, "<br>",
+      Title, "<br>",
+      "Total degree: ", total_degree, "<br>",
+      "Betweenness: ", round(betweenness, 2)
+    )
+  )
+
+vis_edges <- top_edges %>%
+  transmute(
+    from = source,
+    to = target,
+    value = weight,
+    title = paste0(sourceLabel, " -> ", targetLabel, "<br>Emails: ", weight),
+    arrows = "to"
+  )
+```
+
+```{r}
+visNetwork(vis_nodes, vis_edges, height = "620px") %>%
+  visEdges(smooth = FALSE) %>%
+  visOptions(
+    highlightNearest = TRUE,
+    nodesIdSelection = TRUE
+  ) %>%
+  visLayout(randomSeed = 608) %>%
+  visPhysics(stabilization = TRUE)
+```
+
+## My Extension: Department-level communication summary
+
+The network graph shows individual actors. The extension below summarises communication at the department level, which is easier to compare when the node-level graph is visually dense.
+
+```{r}
+dept_edges <- edges %>%
+  left_join(nodes %>% select(id, source_dept = Department), by = c("source" = "id")) %>%
+  left_join(nodes %>% select(id, target_dept = Department), by = c("target" = "id")) %>%
+  filter(!is.na(source_dept), !is.na(target_dept)) %>%
+  count(source_dept, target_dept, name = "emails") %>%
+  arrange(desc(emails))
+```
+
+```{r}
+DT::datatable(
+  dept_edges,
+  rownames = FALSE,
+  options = list(pageLength = 10)
+)
+```
+
+This summary is useful because it separates individual importance from departmental communication volume. A department can be highly active even if no single person dominates the actor-level graph.
+
+## Key Takeaways
+
+- Network analysis requires both edges and nodes, because the links and the actors carry different information.
+- Aggregating repeated sender-recipient pairs makes the graph easier to read and gives each edge an interpretable weight.
+- Centrality measures help identify actors who are connected, active or structurally important.
+- Static and interactive network views complement each other: static views are good for presentation, while interactive views are good for exploration.
+
+## References
+
+- R4VA chapter: <https://r4va.netlify.app/chap27>
+

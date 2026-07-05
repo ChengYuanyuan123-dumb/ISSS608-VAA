@@ -1,0 +1,81 @@
+project:
+  type: website
+
+website:
+  title: "ISS608-VAA"
+  navbar:
+    left:
+      - text: "Hands-on Exercise"
+        menu:
+          - text: "Hands-on Exercise 1"
+            href: Hands-on_Ex/Hands-on_Ex01/
+          - text: "Hands-on Exercise 2"
+            href: Hands-on_Ex/Hands-on_Ex02/Hands-on_ex02.html
+          - text: "Hands-on Exercise 3"
+            href: Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.qmd
+          - text: "Hands-on Exercise 4"
+            href: Hands-on_Ex/Hands-on_Ex04/Hands-on_ex04.html
+          - text: "Hands-on Exercise 4a"
+            href: Hands-on_Ex/Hands-on_Ex05a/Hands-on_Ex05a.qmd
+          - text: "Hands-on Exercise 4b"
+            href: Hands-on_Ex/Hands-on_Ex05b/Hands-on_Ex05b.qmd
+          - text: "Hands-on Exercise 4c"
+            href: Hands-on_Ex/Hands-on_Ex05c/Hands-on_Ex05c.qmd
+          - text: "Hands-on Exercise 4d"
+            href: Hands-on_Ex/Hands-on_Ex05d/Hands-on_Ex05d.qmd
+          - text: "Hands-on Exercise 5a"
+            href: Hands-on_Ex/Hands-on_Ex06a/Hands-on_Ex06a.qmd
+          - text: "Hands-on Exercise 5b"
+            href: Hands-on_Ex/Hands-on_Ex06b/Hands-on_Ex06b.qmd
+          - text: "Hands-on Exercise 5c"
+            href: Hands-on_Ex/Hands-on_Ex06c/Hands-on_Ex06c.qmd
+          - text: "Hands-on Exercise 5d"
+            href: Hands-on_Ex/Hands-on_Ex06d/Hands-on_Ex06d.qmd
+          - text: "Hands-on Exercise 5e"
+            href: Hands-on_Ex/Hands-on_Ex06e/Hands-on_Ex06e.qmd
+          - text: "Hands-on Exercise 7a"
+            href: Hands-on_Ex/Hands-on_Ex07a/Hands-on_Ex07a.qmd
+          - text: "Hands-on Exercise 7b"
+            href: Hands-on_Ex/Hands-on_Ex07b/Hands-on_Ex07b.qmd
+          - text: "Hands-on Exercise 8"
+            href: Hands-on_Ex/Hands-on_Ex08/Hands-on_Ex08.qmd
+          - text: "Hands-on Exercise 9a"
+            href: Hands-on_Ex/Hands-on_Ex09a/Hands-on_Ex09a.qmd
+          - text: "Hands-on Exercise 9b"
+            href: Hands-on_Ex/Hands-on_Ex09b/Hands-on_Ex09b.qmd
+          - text: "Hands-on Exercise 9c"
+            href: Hands-on_Ex/Hands-on_Ex09c/Hands-on_Ex09c.qmd
+          - text: "Hands-on Exercise 10"
+            href: Hands-on_Ex/Hands-on_Ex10/Hands-on_Ex10.qmd
+            
+      - text: "Take-home Exercise"
+        menu:
+          - text: "Take-home Exercise 1 - Executive Summary"
+            href: Take-home_Ex01/Executive_Summary.html
+          - text: "Take-home Exercise 1 - Technical Report"
+            href: Take-home_Ex01/Technical_Report.html
+
+    
+          - text: "Take-home Exercise 2 - MC1 Report"
+            href: th_ex/th_ex2/th_ex2.html
+
+          - text: "Take-home Exercise 3 - Executive Summary"
+            href: Take-home_Ex/Take-home_EX03/Executive_Summary.html
+          - text: "Take-home Exercise 3 - Technical Report"
+            href: Take-home_Ex/Take-home_EX03/Technical_Report.html
+
+    right:
+      - text: "Home"
+        href: index.qmd
+      - text: "About"
+        href: about.qmd
+
+format:
+  html:
+    theme: Slate
+    css: styles.css
+    toc: true
+    toc-depth: 3
+    number-sections: true
+
+editor: visual

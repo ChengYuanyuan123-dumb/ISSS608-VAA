@@ -1,0 +1,382 @@
+---
+title: "Hands-on_Ex07b"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Visualising and Analysing Text Data with R
+
+## Overview
+
+Text data is unstructured, so it needs to be reshaped before it can be counted, compared and visualised. The tidy text approach converts documents into one-token-per-row data, making it possible to use familiar `dplyr` and `ggplot2` workflows.
+
+In this hands-on exercise, the 20 Newsgroups sample is used to practise text import, cleaning, tokenisation, word frequency analysis, TF-IDF, word correlation and bigram network visualisation.
+
+By the end of this exercise, we should be able to:
+
+- import multiple text files from multiple folders;
+- clean email-style message text;
+- tokenise text into individual words and bigrams;
+- remove stop words and noisy tokens;
+- compute term frequency and TF-IDF;
+- visualise word co-occurrence and bigram relationships as networks.
+
+## Installing and launching R packages
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  tidyverse,
+  tidytext,
+  widyr,
+  tidygraph,
+  ggraph,
+  igraph,
+  DT,
+  scales,
+  knitr
+)
+```
+
+## Importing multiple text files from multiple folders
+
+### Creating a folder list
+
+The data folder contains one subfolder per newsgroup. Each file inside a subfolder is one message.
+
+```{r}
+news_root <- "data/20news"
+
+if (!dir.exists(news_root)) {
+  stop("The folder data/20news is missing. Please unzip 20news.zip into the data folder.")
+}
+
+news_folders <- list.dirs(news_root, recursive = FALSE, full.names = TRUE)
+
+tibble(
+  folder = basename(news_folders),
+  messages = map_int(news_folders, ~ length(list.files(.x, full.names = TRUE)))
+) %>%
+  knitr::kable(format = "html")
+```
+
+### Define a function to read all files from a folder
+
+```{r}
+read_newsgroup <- function(folder) {
+  files <- list.files(folder, full.names = TRUE)
+
+  tibble(
+    newsgroup = basename(folder),
+    file = basename(files),
+    text = map_chr(files, readr::read_file)
+  )
+}
+```
+
+### Reading in all messages
+
+```{r}
+news_raw <- map_dfr(news_folders, read_newsgroup) %>%
+  mutate(doc_id = row_number())
+
+glimpse(news_raw)
+```
+
+```{r}
+news_raw %>%
+  count(newsgroup, sort = TRUE) %>%
+  knitr::kable(format = "html")
+```
+
+## Initial EDA
+
+Before tokenising, it is useful to inspect message length. Very short messages may contain only quoted text or metadata, while very long messages may dominate word counts.
+
+```{r}
+news_eda <- news_raw %>%
+  mutate(
+    characters = str_length(text),
+    lines = str_count(text, "\n") + 1
+  )
+```
+
+```{r fig.width=8, fig.height=5}
+news_eda %>%
+  ggplot(aes(characters)) +
+  geom_histogram(bins = 30, fill = "#2A6F6F", colour = "white") +
+  scale_x_continuous(labels = comma) +
+  labs(
+    title = "Distribution of Message Length",
+    x = "Number of characters",
+    y = "Number of messages"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## Introducing tidytext
+
+### Removing header and quoted lines
+
+Newsgroup files often include headers, signatures and quoted replies. The cleaning function below removes the first header block, removes quoted lines beginning with `>`, and squeezes repeated whitespace.
+
+```{r}
+clean_message <- function(x) {
+  x %>%
+    str_replace_all("\r\n", "\n") %>%
+    str_replace(regex("^.*?\n\n", dotall = TRUE), "") %>%
+    str_replace_all(regex("^>.*$", multiline = TRUE), " ") %>%
+    str_replace_all(regex("^\\|.*$", multiline = TRUE), " ") %>%
+    str_replace_all("\\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,}\\b", " ") %>%
+    str_replace_all("[^A-Za-z\\s]", " ") %>%
+    str_squish()
+}
+
+news_clean <- news_raw %>%
+  mutate(text_clean = map_chr(text, clean_message))
+```
+
+### Text data processing
+
+The `unnest_tokens()` function converts each message into one word per row. Common stop words are removed so the remaining terms are more meaningful.
+
+```{r}
+data("stop_words")
+
+news_words <- news_clean %>%
+  select(doc_id, newsgroup, text_clean) %>%
+  unnest_tokens(word, text_clean) %>%
+  anti_join(stop_words, by = "word") %>%
+  filter(
+    str_detect(word, "^[a-z]+$"),
+    str_length(word) > 2
+  )
+
+glimpse(news_words)
+```
+
+### Visualising words in newsgroups
+
+```{r}
+word_counts <- news_words %>%
+  count(newsgroup, word, sort = TRUE)
+
+focus_groups <- news_clean %>%
+  count(newsgroup, sort = TRUE) %>%
+  slice_head(n = 6) %>%
+  pull(newsgroup)
+
+top_words <- word_counts %>%
+  filter(newsgroup %in% focus_groups) %>%
+  group_by(newsgroup) %>%
+  slice_max(n, n = 8, with_ties = FALSE) %>%
+  ungroup() %>%
+  mutate(word = reorder_within(word, n, newsgroup))
+```
+
+```{r fig.width=10, fig.height=7}
+ggplot(top_words, aes(n, word, fill = newsgroup)) +
+  geom_col(show.legend = FALSE) +
+  scale_y_reordered() +
+  facet_wrap(~newsgroup, scales = "free_y") +
+  labs(
+    title = "Most Frequent Words by Newsgroup",
+    x = "Word count",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+## Basic concept of TF-IDF
+
+Frequent words are not always distinctive. TF-IDF downweights terms that appear in many groups and highlights words that are unusually important to a particular group.
+
+### Computing TF-IDF within newsgroups
+
+```{r}
+tf_idf_words <- word_counts %>%
+  bind_tf_idf(word, newsgroup, n) %>%
+  arrange(desc(tf_idf))
+```
+
+```{r}
+DT::datatable(
+  tf_idf_words %>%
+    select(newsgroup, word, n, tf, idf, tf_idf) %>%
+    head(60),
+  rownames = FALSE,
+  options = list(pageLength = 10)
+)
+```
+
+### Visualising TF-IDF within newsgroups
+
+```{r}
+top_tfidf <- tf_idf_words %>%
+  filter(newsgroup %in% focus_groups) %>%
+  group_by(newsgroup) %>%
+  slice_max(tf_idf, n = 8, with_ties = FALSE) %>%
+  ungroup() %>%
+  mutate(word = reorder_within(word, tf_idf, newsgroup))
+```
+
+```{r fig.width=10, fig.height=7}
+ggplot(top_tfidf, aes(tf_idf, word, fill = newsgroup)) +
+  geom_col(show.legend = FALSE) +
+  scale_y_reordered() +
+  facet_wrap(~newsgroup, scales = "free_y") +
+  labs(
+    title = "Distinctive Terms by Newsgroup",
+    subtitle = "TF-IDF highlights words that are frequent in one group but less common elsewhere",
+    x = "TF-IDF",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+## Counting and correlating pairs of words
+
+The `widyr` package can calculate how often two words appear in the same document. This is useful for turning text into a network.
+
+```{r}
+word_correlation <- news_words %>%
+  add_count(word) %>%
+  filter(n >= 5) %>%
+  pairwise_cor(word, doc_id, sort = TRUE, upper = FALSE) %>%
+  filter(correlation >= 0.25) %>%
+  slice_head(n = 80)
+
+word_correlation %>%
+  head(10) %>%
+  knitr::kable(format = "html", digits = 3)
+```
+
+```{r fig.width=9, fig.height=7}
+if (nrow(word_correlation) > 0) {
+  word_graph <- word_correlation %>%
+    transmute(from = item1, to = item2, correlation) %>%
+    as_tbl_graph(directed = FALSE)
+
+  set.seed(608)
+
+  ggraph(word_graph, layout = "fr") +
+    geom_edge_link(aes(width = correlation), alpha = 0.35, colour = "grey55") +
+    geom_node_point(size = 3, colour = "#2A6F6F") +
+    geom_node_text(aes(label = name), size = 3, vjust = 1.6, check_overlap = TRUE) +
+    scale_edge_width(range = c(0.3, 2), guide = "none") +
+    labs(
+      title = "Word Correlation Network",
+      subtitle = "Words are linked when they tend to appear in the same messages"
+    ) +
+    theme_graph(base_family = "sans") +
+    theme(plot.title = element_text(face = "bold"))
+}
+```
+
+## Bigram analysis
+
+Bigrams are adjacent two-word phrases. They preserve a small amount of word order, which can make the text interpretation more meaningful than individual tokens alone.
+
+```{r}
+news_bigrams <- news_clean %>%
+  select(doc_id, newsgroup, text_clean) %>%
+  unnest_tokens(bigram, text_clean, token = "ngrams", n = 2) %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>%
+  filter(
+    !word1 %in% stop_words$word,
+    !word2 %in% stop_words$word,
+    str_detect(word1, "^[a-z]+$"),
+    str_detect(word2, "^[a-z]+$"),
+    str_length(word1) > 2,
+    str_length(word2) > 2
+  )
+
+bigram_counts <- news_bigrams %>%
+  count(word1, word2, sort = TRUE)
+
+bigram_counts %>%
+  head(12) %>%
+  knitr::kable(format = "html")
+```
+
+### Visualising a network of bigrams with ggraph
+
+```{r}
+bigram_graph <- bigram_counts %>%
+  slice_max(n, n = 80, with_ties = FALSE) %>%
+  transmute(from = word1, to = word2, weight = n) %>%
+  as_tbl_graph(directed = TRUE)
+```
+
+```{r fig.width=10, fig.height=7}
+set.seed(608)
+
+ggraph(bigram_graph, layout = "fr") +
+  geom_edge_link(
+    aes(width = weight),
+    alpha = 0.35,
+    colour = "grey55",
+    arrow = arrow(length = unit(2, "mm"), type = "closed"),
+    end_cap = circle(2, "mm")
+  ) +
+  geom_node_point(colour = "#D95F02", size = 3) +
+  geom_node_text(aes(label = name), size = 3, vjust = 1.6, check_overlap = TRUE) +
+  scale_edge_width(range = c(0.2, 2), guide = "none") +
+  labs(
+    title = "Bigram Network",
+    subtitle = "Directional links show the first and second word in common two-word phrases"
+  ) +
+  theme_graph(base_family = "sans") +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## My Extension: Message length by newsgroup
+
+This extension checks whether some groups tend to write longer messages. It is a useful caution because longer documents naturally generate more words and more possible co-occurrences.
+
+```{r fig.width=10, fig.height=6}
+news_eda %>%
+  mutate(newsgroup = fct_reorder(newsgroup, characters, median)) %>%
+  ggplot(aes(characters, newsgroup)) +
+  geom_boxplot(fill = "#E6B655", colour = "grey35", outlier.alpha = 0.35) +
+  scale_x_log10(labels = comma) +
+  labs(
+    title = "Message Length Varies by Newsgroup",
+    x = "Characters per message, log scale",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+## Key Takeaways
+
+- Tidy text analysis begins by reshaping documents into token-level rows.
+- Removing stop words and obvious message metadata improves the quality of word counts.
+- TF-IDF is useful when the question is about distinctive vocabulary, not only frequent vocabulary.
+- Word and bigram networks reveal associations that are hard to see in a simple frequency table.
+
+## References
+
+- R4VA chapter: <https://r4va.netlify.app/chap29>
+

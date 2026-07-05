@@ -1,0 +1,278 @@
+---
+title: "Hands-on_Ex09b"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Visualising Geospatial Point Data
+
+## Overview
+
+Point maps are used when each observation has a coordinate pair. Unlike choropleth maps, the unit of analysis is a location rather than an area. Symbol size, colour and shape can then be used to encode additional attributes.
+
+In this hands-on exercise, Singapore Pools outlet data is converted from an aspatial table into an `sf` point layer. The points are mapped over Singapore subzones and then redesigned as proportional symbol maps.
+
+By the end of this exercise, we should be able to:
+
+- import point data with projected coordinates;
+- convert a data frame into an `sf` point object;
+- draw point symbol maps;
+- draw proportional symbol maps;
+- compare point patterns by outlet type;
+- use a base polygon layer to provide geographic context.
+
+## Installing and launching R packages
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  tidyverse,
+  sf,
+  scales,
+  knitr
+)
+```
+
+## Geospatial Data Wrangling
+
+### The data
+
+The point data file is `SGPools_svy21.csv`. It includes outlet names, addresses, coordinates, outlet type and the `Gp1Gp2 Winnings` field used for proportional symbols.
+
+A Singapore subzone shapefile is also included in this exercise folder so the points can be mapped on a recognisable base map.
+
+```{r}
+pools_path <- "data/aspatial/SGPools_svy21.csv"
+sg_path <- "data/geospatial/MP14_SUBZONE_WEB_PL.shp"
+
+if (!file.exists(pools_path) || !file.exists(sg_path)) {
+  stop("The Singapore Pools CSV or Singapore subzone shapefile is missing.")
+}
+
+sg_map <- st_read(sg_path, quiet = TRUE) %>%
+  st_make_valid()
+
+sgpools <- read_csv(pools_path, show_col_types = FALSE)
+
+glimpse(sgpools)
+```
+
+### Creating a sf data frame from an aspatial data frame
+
+The coordinates are stored in Singapore SVY21 projected coordinates. The point layer is created using the same CRS as the subzone map to avoid misalignment.
+
+```{r}
+sgpools_sf <- st_as_sf(
+  sgpools,
+  coords = c("XCOORD", "YCOORD"),
+  crs = st_crs(sg_map),
+  remove = FALSE
+) %>%
+  mutate(
+    winnings = `Gp1Gp2 Winnings`,
+    outlet_type = `OUTLET TYPE`
+  )
+```
+
+```{r}
+sgpools_sf %>%
+  st_drop_geometry() %>%
+  select(NAME, outlet_type, winnings, XCOORD, YCOORD) %>%
+  head(10) %>%
+  knitr::kable(format = "html")
+```
+
+## Drawing Proportional Symbol Map
+
+### It all started with an interactive point symbol map
+
+The first map uses equal-sized points. It is useful for checking whether the points are placed correctly.
+
+::: {.panel-tabset}
+
+## The plot
+
+```{r fig.width=8, fig.height=7}
+ggplot() +
+  geom_sf(data = sg_map, fill = "grey94", colour = "white", linewidth = 0.08) +
+  geom_sf(data = sgpools_sf, aes(colour = outlet_type), size = 2.2, alpha = 0.85) +
+  coord_sf() +
+  labs(
+    title = "Singapore Pools Outlet Locations",
+    colour = "Outlet type"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## The code chunk
+
+```{r eval=FALSE}
+ggplot() +
+  geom_sf(data = sg_map, fill = "grey94", colour = "white", linewidth = 0.08) +
+  geom_sf(data = sgpools_sf, aes(colour = outlet_type), size = 2.2, alpha = 0.85) +
+  coord_sf() +
+  labs(
+    title = "Singapore Pools Outlet Locations",
+    colour = "Outlet type"
+  ) +
+  theme_void(base_size = 12)
+```
+
+:::
+
+### Lets make it proportional
+
+The next map uses point size to represent `Gp1Gp2 Winnings`. This is more informative because it shows both location and magnitude.
+
+```{r fig.width=8, fig.height=7}
+ggplot() +
+  geom_sf(data = sg_map, fill = "grey94", colour = "white", linewidth = 0.08) +
+  geom_sf(
+    data = sgpools_sf,
+    aes(size = winnings),
+    shape = 21,
+    fill = "#2A6F6F",
+    colour = "white",
+    alpha = 0.82,
+    stroke = 0.25
+  ) +
+  scale_size_area(max_size = 12, labels = comma) +
+  labs(
+    title = "Proportional Symbol Map of Singapore Pools Outlets",
+    subtitle = "Symbol area represents Group 1 and Group 2 winnings",
+    size = "Winnings"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+### Lets give it a different colour
+
+Colour can be used together with size to represent outlet type and winnings at the same time.
+
+```{r fig.width=8, fig.height=7}
+ggplot() +
+  geom_sf(data = sg_map, fill = "grey94", colour = "white", linewidth = 0.08) +
+  geom_sf(
+    data = sgpools_sf,
+    aes(size = winnings, fill = outlet_type),
+    shape = 21,
+    colour = "white",
+    alpha = 0.86,
+    stroke = 0.25
+  ) +
+  scale_size_area(max_size = 12, labels = comma) +
+  scale_fill_manual(values = c("#2A6F6F", "#D95F02", "#E6B655", "#6A5ACD")) +
+  labs(
+    title = "Outlet Type and Winnings",
+    size = "Winnings",
+    fill = "Outlet type"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+### I have a twin brother
+
+Faceting gives each outlet type its own panel. This reduces overlap and makes the spatial pattern of each group easier to inspect.
+
+```{r fig.width=10, fig.height=7}
+ggplot() +
+  geom_sf(data = sg_map, fill = "grey94", colour = "white", linewidth = 0.08) +
+  geom_sf(
+    data = sgpools_sf,
+    aes(size = winnings),
+    shape = 21,
+    fill = "#D95F02",
+    colour = "white",
+    alpha = 0.85,
+    stroke = 0.2
+  ) +
+  facet_wrap(~outlet_type) +
+  scale_size_area(max_size = 9, labels = comma) +
+  labs(
+    title = "Proportional Symbols by Outlet Type",
+    size = "Winnings"
+  ) +
+  theme_void(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## My Extension: Highest winning outlets
+
+The table below identifies the outlets with the largest recorded winnings. This provides a readable supplement to the proportional symbol map, where large circles can overlap.
+
+```{r}
+sgpools_sf %>%
+  st_drop_geometry() %>%
+  arrange(desc(winnings)) %>%
+  select(NAME, ADDRESS, outlet_type, winnings) %>%
+  head(10) %>%
+  mutate(winnings = comma(winnings)) %>%
+  knitr::kable(format = "html")
+```
+
+```{r fig.width=8, fig.height=7}
+top_outlets <- sgpools_sf %>%
+  slice_max(winnings, n = 10, with_ties = FALSE)
+
+ggplot() +
+  geom_sf(data = sg_map, fill = "grey94", colour = "white", linewidth = 0.08) +
+  geom_sf(data = sgpools_sf, colour = "grey55", size = 1.3, alpha = 0.45) +
+  geom_sf(
+    data = top_outlets,
+    aes(size = winnings),
+    shape = 21,
+    fill = "#D95F02",
+    colour = "white",
+    alpha = 0.9
+  ) +
+  scale_size_area(max_size = 13, labels = comma) +
+  labs(
+    title = "Top Winning Outlets",
+    subtitle = "Highlighted points are the ten outlets with the largest winnings",
+    size = "Winnings"
+  ) +
+  theme_void(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+## Key Takeaways
+
+- Point maps require correctly assigned coordinate reference systems.
+- Equal-sized point maps are good for checking location, while proportional symbols add magnitude.
+- Symbol size and colour should not compete; each should encode a clear variable.
+- A summary table is helpful when overlapping circles make exact comparison difficult.
+
+## References
+
+- R4VA chapter: <https://r4va.netlify.app/chap22>
+

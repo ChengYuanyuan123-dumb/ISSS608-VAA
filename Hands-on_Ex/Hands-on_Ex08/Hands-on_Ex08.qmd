@@ -1,0 +1,321 @@
+---
+title: "Hands-on_Ex08"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: false
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Visualising and Analysing Time-oriented Data
+
+## Overview
+
+Time-oriented data can be viewed from several angles. Some tasks focus on daily intensity, some focus on repeated seasonal patterns, and some focus on change between two points in time.
+
+In this hands-on exercise, three visual techniques are used:
+
+- calendar heatmap for event intensity by date;
+- cycle plot for seasonal arrivals by month;
+- slopegraph for comparing rice yield change between two years.
+
+By the end of this exercise, we should be able to:
+
+- prepare timestamp fields for time-based visualisation;
+- build calendar heatmaps with `ggplot2`;
+- reshape monthly arrival data for cycle plots;
+- compare start and end values using slopegraphs;
+- interpret time patterns without relying only on a standard line chart.
+
+## Installing and launching R packages
+
+```{r}
+if (!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman", repos = "https://cloud.r-project.org")
+}
+
+pacman::p_load(
+  tidyverse,
+  readxl,
+  lubridate,
+  scales,
+  patchwork,
+  knitr
+)
+```
+
+## Plotting Calendar Heatmap
+
+### The data
+
+The calendar heatmap uses `eventlog.csv`. Each row records an event timestamp and source country.
+
+```{r}
+eventlog_path <- "data/eventlog.csv"
+
+if (!file.exists(eventlog_path)) {
+  stop("eventlog.csv is missing from the data folder.")
+}
+
+eventlog <- read_csv(eventlog_path, show_col_types = FALSE) %>%
+  mutate(
+    timestamp = lubridate::ymd_hms(timestamp, tz = "UTC"),
+    date = as.Date(timestamp),
+    year = year(date),
+    month = month(date, label = TRUE, abbr = TRUE),
+    month_num = month(date),
+    week_of_month = ((day(date) - 1) %/% 7) + 1,
+    weekday = wday(date, label = TRUE, abbr = TRUE, week_start = 1)
+  )
+
+glimpse(eventlog)
+```
+
+```{r}
+eventlog %>%
+  head() %>%
+  knitr::kable(format = "html")
+```
+
+### Building the Calendar Heatmap
+
+```{r}
+daily_events <- eventlog %>%
+  count(date, year, month, month_num, week_of_month, weekday, name = "events")
+```
+
+```{r fig.width=10, fig.height=7}
+ggplot(daily_events, aes(week_of_month, fct_rev(weekday), fill = events)) +
+  geom_tile(colour = "white", linewidth = 0.3) +
+  facet_wrap(~month, ncol = 4) +
+  scale_fill_gradient(low = "#F2F0E6", high = "#2A6F6F", labels = comma) +
+  scale_x_continuous(breaks = 1:5) +
+  labs(
+    title = "Calendar Heatmap of Events",
+    subtitle = "Each tile shows the number of events recorded on a date",
+    x = "Week of month",
+    y = NULL,
+    fill = "Events"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+### Building multiple calendar heatmaps
+
+The next view repeats the calendar heatmap for the four most common source countries. This makes it easier to see whether event activity is concentrated in the same periods.
+
+```{r}
+top_countries <- eventlog %>%
+  count(source_country, sort = TRUE) %>%
+  slice_head(n = 4) %>%
+  pull(source_country)
+
+daily_country_events <- eventlog %>%
+  filter(source_country %in% top_countries) %>%
+  count(source_country, date, month, week_of_month, weekday, name = "events")
+```
+
+```{r fig.width=10, fig.height=8}
+ggplot(daily_country_events, aes(week_of_month, fct_rev(weekday), fill = events)) +
+  geom_tile(colour = "white", linewidth = 0.25) +
+  facet_grid(source_country ~ month) +
+  scale_fill_gradient(low = "#F2F0E6", high = "#D95F02", labels = comma) +
+  scale_x_continuous(breaks = 1:5) +
+  labs(
+    title = "Calendar Heatmaps by Source Country",
+    x = "Week of month",
+    y = NULL,
+    fill = "Events"
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(size = 7),
+    axis.text.y = element_text(size = 7),
+    strip.text = element_text(face = "bold", size = 8)
+  )
+```
+
+## Plotting Cycle Plot
+
+### Step 1: Data import
+
+The cycle plot uses monthly air-arrival data. The original file is wide, with one column per country, so it is reshaped into long format.
+
+```{r}
+arrival_path <- "data/arrivals_by_air.xlsx"
+
+if (!file.exists(arrival_path)) {
+  stop("arrivals_by_air.xlsx is missing from the data folder.")
+}
+
+arrivals <- read_excel(arrival_path) %>%
+  rename(date = `Month-Year`) %>%
+  pivot_longer(
+    cols = -date,
+    names_to = "country",
+    values_to = "arrivals"
+  ) %>%
+  mutate(
+    date = as.Date(date),
+    year = year(date),
+    month = month(date, label = TRUE, abbr = TRUE),
+    month_num = month(date)
+  )
+
+glimpse(arrivals)
+```
+
+### Step 2: Deriving month and year fields
+
+For a cycle plot, each panel is one month. The line inside the panel shows how that month changes across years.
+
+```{r}
+cycle_country <- "China"
+
+cycle_data <- arrivals %>%
+  filter(country == cycle_country) %>%
+  group_by(month_num, month) %>%
+  mutate(month_average = mean(arrivals, na.rm = TRUE)) %>%
+  ungroup()
+```
+
+### Step 3: Plotting the cycle plot
+
+```{r fig.width=10, fig.height=7}
+ggplot(cycle_data, aes(year, arrivals)) +
+  geom_line(colour = "#2A6F6F", linewidth = 0.7) +
+  geom_hline(aes(yintercept = month_average), colour = "#D95F02", linetype = "dashed") +
+  facet_wrap(~month, ncol = 4, scales = "free_y") +
+  scale_y_continuous(labels = comma) +
+  labs(
+    title = paste("Monthly Arrival Cycle Plot for", cycle_country),
+    subtitle = "Dashed line shows the long-run average within each month",
+    x = "Year",
+    y = "Visitor arrivals"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+The cycle plot keeps the seasonal structure visible. It is easier to compare all Januaries with other Januaries, all Februaries with other Februaries, and so on.
+
+## Plotting Slopegraph
+
+### Step 1: Data import
+
+The slopegraph uses `rice.csv`, which contains rice yield and production by country and year.
+
+```{r}
+rice_path <- "data/rice.csv"
+
+if (!file.exists(rice_path)) {
+  stop("rice.csv is missing from the data folder.")
+}
+
+rice <- read_csv(rice_path, show_col_types = FALSE)
+
+glimpse(rice)
+```
+
+### Step 2: Plotting the slopegraph
+
+The slopegraph compares the first and last available years for the countries with the largest production in the latest year.
+
+```{r}
+start_year <- min(rice$Year, na.rm = TRUE)
+end_year <- max(rice$Year, na.rm = TRUE)
+
+top_rice_countries <- rice %>%
+  filter(Year == end_year) %>%
+  slice_max(Production, n = 8, with_ties = FALSE) %>%
+  pull(Country)
+
+slope_data <- rice %>%
+  filter(
+    Country %in% top_rice_countries,
+    Year %in% c(start_year, end_year)
+  ) %>%
+  group_by(Country) %>%
+  filter(n_distinct(Year) == 2) %>%
+  ungroup()
+```
+
+```{r fig.width=9, fig.height=6}
+ggplot(slope_data, aes(factor(Year), Yield, group = Country, colour = Country)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 2.8) +
+  geom_text(aes(label = Country), hjust = -0.08, size = 3, check_overlap = TRUE) +
+  scale_y_continuous(labels = comma) +
+  coord_cartesian(clip = "off") +
+  labs(
+    title = "Change in Rice Yield",
+    subtitle = paste("Comparison between", start_year, "and", end_year),
+    x = NULL,
+    y = "Yield",
+    colour = "Country"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "none",
+    plot.margin = margin(5.5, 70, 5.5, 5.5)
+  )
+```
+
+## My Extension: Indexed arrivals for selected countries
+
+This extension compares selected countries using an index. Each country's first month is set to 100, so the line shows relative change rather than absolute volume.
+
+```{r}
+selected_arrivals <- arrivals %>%
+  filter(country %in% c("China", "India", "USA", "United Kingdom")) %>%
+  group_by(country) %>%
+  arrange(date, .by_group = TRUE) %>%
+  mutate(index = arrivals / first(arrivals) * 100) %>%
+  ungroup()
+```
+
+```{r fig.width=10, fig.height=5}
+ggplot(selected_arrivals, aes(date, index, colour = country)) +
+  geom_line(linewidth = 0.7) +
+  scale_y_continuous(labels = label_number(suffix = "")) +
+  labs(
+    title = "Indexed Visitor Arrivals",
+    subtitle = "Each country starts at 100 in the first month of the series",
+    x = NULL,
+    y = "Index",
+    colour = "Country"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+## Key Takeaways
+
+- Calendar heatmaps are useful for dense daily records because they preserve date context.
+- Cycle plots separate seasonal comparison from long-term trend comparison.
+- Slopegraphs work well when the main message is change between two points in time.
+- Time-oriented data often needs derived fields such as date, year, month, weekday and week-of-month before visualisation.
+
+## References
+
+- R4VA chapter: <https://r4va.netlify.app/chap17>
+
